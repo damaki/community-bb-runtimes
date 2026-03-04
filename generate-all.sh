@@ -42,7 +42,17 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-targets=("rp2040" "rp2350" "nrf52832" "nrf52833" "nrf52840" "stm32f0xx" "stm32g0xx")
+targets=(\
+  "rp2040" \
+  "rp2350" \
+  "nrf52832" \
+  "nrf52833" \
+  "nrf52840" \
+  "stm32f0xx" \
+  "stm32g0xx" \
+  "stm32g4xx" \
+)
+
 profiles=("light" "light-tasking" "embedded")
 
 echo "Generating runtimes"
