@@ -1,7 +1,7 @@
 # Community Bareboard Runtimes
 
 This repository contains the sources to generate GNAT Ada/SPARK runtimes for a
-variety of targets.
+variety of embedded targets.
 
 Pre-generated runtimes are released as crates in the
 [Alire Community Index](https://alire.ada.dev/crates.html).
@@ -13,3 +13,8 @@ target-specific documentation:
  * [Nordic Semi nRF52 Series](nrf52_src/README.md)
  * [STMicroelectronics STM32F0xx Series](stm32f0_src/README.md)
  * [STMicroelectronics STM32G0xx Series](stm32g0_src/README.md)
+ * [STMicroelectronics STM32G4xx Series](stm32g4_src/README.md)
+
+The runtimes are configurable through Alire's crate configuration variables.
+Refer to the target-specific READMEs above for details on what is configurable
+for each target.
