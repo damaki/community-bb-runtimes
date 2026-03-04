@@ -1,0 +1,16 @@
+[[template]]
+source = "alire.toml.in"
+target = "alire.toml"
+
+[[template]]
+source = "ravenscar_build.gpr.in"
+target = "ravenscar_build.gpr"
+excluded_profiles = ["light"]
+
+[[template]]
+source = "runtime_build.gpr.in"
+target = "runtime_build.gpr"
+
+[[template]]
+source = "stm32f0xx_runtime_config.ads.in"
+target = "gnat_user/stm32f0xx_runtime_config.ads"

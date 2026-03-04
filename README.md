@@ -11,3 +11,4 @@ target-specific documentation:
  * [Raspberry Pi RP2040](rp2040_src/README.md)
  * [Raspberry Pi RP2350](rp2350_src/README.md)
  * [Nordic Semi nRF52 Series](nrf52_src/README.md)
+ * [STMicroelectronics STM32F0xx Series](stm32f0_src/README.md)

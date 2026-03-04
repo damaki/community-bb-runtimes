@@ -292,6 +292,87 @@ class NRF52832(NRF52):
             'nrf52_src/nrf52832/svd/handler.S',
             'nrf52_src/nrf52832/svd/a-intnam.ads')
 
+
+class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
+    @property
+    def name(self):
+        return "stm32f0xx"
+
+    @property
+    def use_semihosting_io(self):
+        return True
+
+    @property
+    def loaders(self):
+        return ("ROM", "RAM")
+
+    def __init__(self):
+        super(Stm32F0, self).__init__()
+
+        self.add_linker_script("stm32f0_src/common-RAM.ld")
+        self.add_linker_script("stm32f0_src/common-ROM.ld")
+
+        self.add_linker_script("stm32f0_src/memory-map-RAM-16-4.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-16-6.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-16-8.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-32-4.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-32-6.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-32-8.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-64-8.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-64-16.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-128-16.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-128-32.ld")
+        self.add_linker_script("stm32f0_src/memory-map-RAM-256-32.ld")
+
+        self.add_linker_script("stm32f0_src/memory-map-ROM-16-4.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-16-6.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-16-8.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-32-4.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-32-6.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-32-8.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-64-8.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-64-16.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-128-16.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-128-32.ld")
+        self.add_linker_script("stm32f0_src/memory-map-ROM-256-32.ld")
+
+        # We use our own version of System.BB.Parameters
+        self.remove_source("s-bbpara.ads")
+
+        # Common source files
+        self.add_gnat_sources(
+            "stm32f0_src/s-stm32.ads",
+            "stm32f0_src/s-stm32.adb",
+            "stm32f0_src/start-rom.S",
+            "stm32f0_src/start-ram.S",
+            "stm32f0_src/setup_pll.ads",
+            "stm32f0_src/setup_pll.adb",
+            "stm32f0_src/s-bbpara.ads",
+            "stm32f0_src/s-bbbopa.ads",
+            "stm32f0_src/s-bbmcpa-full.ads",
+            "stm32f0_src/s-bbmcpa-simple.ads",
+            "stm32f0_src/stm32f0x0/svd/interfaces-stm32_0.ads",
+            "stm32f0_src/stm32f0x1/svd/interfaces-stm32_1.ads",
+            "stm32f0_src/stm32f0x2/svd/interfaces-stm32_2.ads",
+            "stm32f0_src/stm32f0x8/svd/interfaces-stm32_8.ads",
+            "stm32f0_src/stm32f0x0/svd/interfaces-stm32-flash_0.ads",
+            "stm32f0_src/stm32f0x1/svd/interfaces-stm32-flash_1.ads",
+            "stm32f0_src/stm32f0x2/svd/interfaces-stm32-flash_2.ads",
+            "stm32f0_src/stm32f0x8/svd/interfaces-stm32-flash_8.ads",
+            "stm32f0_src/stm32f0x0/svd/interfaces-stm32-rcc_0.ads",
+            "stm32f0_src/stm32f0x1/svd/interfaces-stm32-rcc_1.ads",
+            "stm32f0_src/stm32f0x2/svd/interfaces-stm32-rcc_2.ads",
+            "stm32f0_src/stm32f0x8/svd/interfaces-stm32-rcc_8.ads",
+        )
+
+        # Choose interrupt names based on family
+        self.add_gnarl_sources(
+            "stm32f0_src/stm32f0x0/svd/a-intnam_0.ads",
+            "stm32f0_src/stm32f0x1/svd/a-intnam_1.ads",
+            "stm32f0_src/stm32f0x2/svd/a-intnam_2.ads",
+            "stm32f0_src/stm32f0x8/svd/a-intnam_8.ads",
+        )
+
 def build_configs(target):
     if target == "rp2040":
         return RP2040()
@@ -303,6 +384,8 @@ def build_configs(target):
         return NRF52833()
     elif target == "nrf52840":
         return NRF52840()
+    elif target == "stm32f0xx":
+        return Stm32F0()
     else:
         assert False, "unexpected target: %s" % target
 

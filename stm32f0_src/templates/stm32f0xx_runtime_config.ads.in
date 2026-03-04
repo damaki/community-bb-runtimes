@@ -1,0 +1,7 @@
+pragma Restrictions (No_Elaboration_Code);
+pragma Style_Checks (Off);
+
+with $(profile_underscored)_Stm32f0xx_Config;
+
+package STM32F0xx_Runtime_Config renames
+  $(profile_underscored)_Stm32f0xx_Config;

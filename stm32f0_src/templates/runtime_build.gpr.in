@@ -1,0 +1,226 @@
+with "target_options.gpr";
+with "gnat_user/$(profile_underscored)_stm32f0xx_config.gpr";
+
+project Runtime_Build is
+  for Languages use ($(languages_list));
+  for Runtime ("Ada") use Project'Project_Dir;
+  for Target use "arm-eabi";
+
+  for Library_Auto_Init use "False";
+  for Library_Name use "gnat";
+  for Library_Kind use Target_Options.Lib;
+  for Library_Options use Target_Options.LOPTIONS;
+  for Library_Version use "libgnat-" & Target_Options.Version & ".so";
+
+  for Library_Dir use "adalib";
+  for Object_Dir use "obj";
+
+  for Source_Dirs use ("gnat_user", "gnat");
+
+  Excluded_Sources := ();
+
+  ROM_Size := "16";
+  RAM_Size := "4";
+  Sub_Family_Minor := "0";
+
+  --  Determine the ROM size based on the "user code memory size" part of the
+  --  STM32 part number.
+
+  case $(profile_underscored)_Stm32f0xx_Config.MCU_User_Code_Memory_Size is
+    when "6"    => ROM_Size := "32";
+    when "8"    => ROM_Size := "64";
+    when "B"    => ROM_Size := "128";
+    when "C"    => ROM_Size := "256";
+    when others => ROM_Size := "16";
+  end case;
+
+  --  Determine the RAM size based on the "pin count" and
+  --  "user code memory size" parts of the STM32 part number.
+
+  MCU_Suffix := $(profile_underscored)_Stm32f0xx_Config.MCU_Pin_Count
+                & $(profile_underscored)_Stm32f0xx_Config.MCU_User_Code_Memory_Size;
+
+  case $(profile_underscored)_Stm32f0xx_Config.MCU_Sub_Family is
+     when "F030" | "F031" | "F038" =>
+       case MCU_Suffix is
+         when "C8" | "R8" => RAM_Size := "8";
+         when "CC" | "RC" => RAM_Size := "32";
+         when others      => RAM_Size := "4";
+       end case;
+
+     when "F042" | "F048" | "F051" | "F058" =>
+       RAM_Size := "4";
+
+     when "F070" | "F071" | "F072" | "F078" =>
+       case MCU_Suffix is
+         when "C8" | "CB" | "RB" | "V8" | "VB" => RAM_Size := "16";
+         when others                           => RAM_Size := "6";
+       end case;
+
+     when "F091" | "F098" =>
+       RAM_Size := "32";
+  end case;
+
+  --  Determine the minor part (last digit) of the sub-family
+
+  MCU_Sub_Family_Minor := "0";
+
+  case $(profile_underscored)_Stm32f0xx_Config.MCU_Sub_Family is
+     when "F030" | "F070" =>
+       MCU_Sub_Family_Minor := "0";
+
+     when "F031" | "F051" | "F071" | "F091" =>
+       MCU_Sub_Family_Minor := "1";
+
+     when "F042" | "F072" =>
+       MCU_Sub_Family_Minor := "2";
+
+     when "F038" | "F048" | "F058" | "F078" | "F098" =>
+       MCU_Sub_Family_Minor := "8";
+
+  end case;
+
+  --  The F04x, F07x, and F09x support the full clock tree.
+  --  The F03x and F05x support the simple clock tree.
+
+  Clock_Tree_Kind := "simple";
+
+  case $(profile_underscored)_Stm32f0xx_Config.MCU_Sub_Family is
+     when "F030" | "F031" | "F038" | "F051" | "F058" =>
+       Clock_Tree_Kind := "simple";
+
+     when "F042" | "F048" | "F070" | "F071" | "F072" | "F078" | "F091" | "F098" =>
+       Clock_Tree_Kind := "full";
+
+  end case;
+
+  --  Exclude unused units
+
+  case Clock_Tree_Kind is
+    when "full" =>
+      Excluded_Sources := Excluded_Sources & ("s-bbmcpa-simple.ads");
+
+    when others =>
+      Excluded_Sources := Excluded_Sources & ("s-bbmcpa-full.ads");
+   end case;
+
+  case MCU_Sub_Family_Minor is
+    when "0" =>
+      Excluded_Sources := Excluded_Sources &
+        ("interfaces-stm32_1.ads",
+         "interfaces-stm32_2.ads",
+         "interfaces-stm32_8.ads",
+         "interfaces-stm32-flash_1.ads",
+         "interfaces-stm32-flash_2.ads",
+         "interfaces-stm32-flash_8.ads",
+         "interfaces-stm32-rcc_1.ads",
+         "interfaces-stm32-rcc_2.ads",
+         "interfaces-stm32-rcc_8.ads");
+
+    when "1" =>
+      Excluded_Sources := Excluded_Sources &
+        ("interfaces-stm32_0.ads",
+         "interfaces-stm32_2.ads",
+         "interfaces-stm32_8.ads",
+         "interfaces-stm32-flash_0.ads",
+         "interfaces-stm32-flash_2.ads",
+         "interfaces-stm32-flash_8.ads",
+         "interfaces-stm32-rcc_0.ads",
+         "interfaces-stm32-rcc_2.ads",
+         "interfaces-stm32-rcc_8.ads");
+
+    when "2" =>
+      Excluded_Sources := Excluded_Sources &
+        ("interfaces-stm32_0.ads",
+         "interfaces-stm32_1.ads",
+         "interfaces-stm32_8.ads",
+         "interfaces-stm32-flash_0.ads",
+         "interfaces-stm32-flash_1.ads",
+         "interfaces-stm32-flash_8.ads",
+         "interfaces-stm32-rcc_0.ads",
+         "interfaces-stm32-rcc_1.ads",
+         "interfaces-stm32-rcc_8.ads");
+
+    when others =>
+      Excluded_Sources := Excluded_Sources &
+        ("interfaces-stm32_0.ads",
+         "interfaces-stm32_1.ads",
+         "interfaces-stm32_2.ads",
+         "interfaces-stm32-flash_0.ads",
+         "interfaces-stm32-flash_1.ads",
+         "interfaces-stm32-flash_2.ads",
+         "interfaces-stm32-rcc_0.ads",
+         "interfaces-stm32-rcc_1.ads",
+         "interfaces-stm32-rcc_2.ads");
+  end case;
+
+  for Excluded_Source_Files use Excluded_Sources;
+
+  --  Select linker script
+
+  type Loaders is ("ROM", "RAM", "USER");
+  Loader : Loaders := external("LOADER", "ROM");
+
+  Linker_Switches := ();
+
+  case Loader is
+    when "ROM" | "RAM" =>
+      Linker_Switches := Linker_Switches &
+        ("-T", Runtime_Build'Project_Dir
+                 & "/ld/memory-map-"
+                 & Loader & "-"
+                 & ROM_Size & "-"
+                 & RAM_Size & ".ld");
+    when "USER" =>
+  end case;
+
+  package Naming is
+     for Spec_Suffix ("Asm_CPP") use ".inc";
+
+     for Spec ("Interfaces.STM32")         use "interfaces-stm32_"       & MCU_Sub_Family_Minor & ".ads";
+     for Spec ("Interfaces.STM32.FLASH")   use "interfaces-stm32-flash_" & MCU_Sub_Family_Minor & ".ads";
+     for Spec ("Interfaces.STM32.RCC")     use "interfaces-stm32-rcc_"   & MCU_Sub_Family_Minor & ".ads";
+     for Spec ("System.BB.MCU_Parameters") use "s-bbmcpa-"               & Clock_Tree_Kind      & ".ads";
+  end Naming;
+
+  package Compiler is
+     for Default_Switches ("C") use Target_Options.ALL_CFLAGS;
+     for Default_Switches ("Ada") use Target_Options.ALL_ADAFLAGS & ("-gnaty-d");
+     for Default_Switches ("Asm_Cpp") use Target_Options.ASMFLAGS;
+
+     --  Some runtime files need to be compiled with debug info, so that gdb
+     --  is not blind.
+     for Switches ("s-traceb.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g")
+       & ("-fno-optimize-sibling-calls", "-fno-inline-functions-called-once");
+     for Switches ("a-except.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g", "-O1", "-fno-inline", "-fno-toplevel-reorder");
+     for Switches ("s-excdeb.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g", "-O0");
+     for Switches ("s-assert.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g");
+     for Switches ("a-tags.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g");
+     for Switches ("raise-gcc.c") use Target_Options.ALL_CFLAGS
+       & ("-fexceptions");
+     for Switches ("unwind-sjlj-cert.c") use Target_Options.ALL_CFLAGS
+       & ("-fexceptions", "-Wno-error=unused-but-set-variable");
+
+     --  Don't inline System.Machine_Reset otherwise we can loose our common
+     --  exit system.
+
+     for Switches ("s-macres.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-fno-inline");
+
+     --  Generate ada_target_properties to give target-specific information
+     --  to formal verification tools.
+
+     for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
+       & ("-gnatet=" & Project'Project_Dir & "/ada_target_properties");
+  end Compiler;
+
+  package CodePeer is
+    for Excluded_Source_Files use ("a-chahan.adb", "a-strbou.adb", "a-strfix.adb", "a-strmap.adb", "a-strsea.adb", "a-strsup.adb", "g-io.adb", "i-c.adb", "s-arit32.adb", "s-arit64.adb", "s-casuti.adb", "s-exnint.adb", "s-exnlli.adb", "s-exnllli.ads", "s-expint.adb", "s-explli.adb", "s-expllli.ads", "s-explllu.ads", "s-expllu.adb", "s-expmod.adb", "s-expuns.adb", "s-gearop.adb", "s-imgboo.adb", "s-imgint.adb", "s-imglli.adb", "s-imgllli.ads", "s-imglllu.ads", "s-imgllu.adb", "s-imguns.adb", "s-valboo.adb", "s-valint.adb", "s-vallli.adb", "s-valllli.ads", "s-vallllu.ads", "s-valllu.adb", "s-valuns.adb", "s-valuti.adb", "s-veboop.adb", "s-widint.ads", "s-widlli.adb", "s-widllli.ads", "s-widlllu.ads", "s-widllu.adb", "s-widuns.ads");
+  end CodePeer;
+
+end Runtime_Build;

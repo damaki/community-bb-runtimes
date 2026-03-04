@@ -31,6 +31,7 @@ target_src_dirs = {
     "nrf52832": "nrf52_src",
     "nrf52833": "nrf52_src",
     "nrf52840": "nrf52_src",
+    "stm32f0xx": "stm32f0_src",
 }
 
 
