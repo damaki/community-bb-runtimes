@@ -1,0 +1,51 @@
+on:
+    release:
+      types: [published]
+
+jobs:
+
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Retrieve upload URL for the release
+        if: (github.event_name == 'release')
+        id: get_release
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Get release version
+        if: (github.event_name == 'release')
+        id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: Generate Runtimes
+        run: ./generate-all.sh --version ${{ steps.get_version.outputs.version-without-v }}
+
+      - name: Archive Runtimes
+        run: |
+          for dir in install/*/ ; do
+            runtime=$(basename $dir)
+            tar -czvf install/$runtime-${{ steps.get_version.outputs.version-without-v }}.tar.gz -C install $runtime
+          done
+
+      # This uses gh release upload instead of actions/upload-release-asset
+      # to simplify uploading multiple artifacts
+      - name: Upload Release Artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd install
+          for f in *.tar.gz; do
+            gh release upload ${{ steps.get_version.outputs.version }} $f
+          done
+

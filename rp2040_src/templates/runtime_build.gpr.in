@@ -1,0 +1,154 @@
+with "target_options.gpr";
+with "gnat_user/$(profile_underscored)_rp2040_config.gpr";
+
+project Runtime_Build is
+   for Languages use ($(languages_list));
+   for Runtime ("Ada") use Project'Project_Dir;
+   for Target use "arm-eabi";
+
+   for Library_Auto_Init use "False";
+   for Library_Name use "gnat";
+   for Library_Kind use Target_Options.Lib;
+   for Library_Options use Target_Options.LOPTIONS;
+   for Library_Version use "libgnat-" & Target_Options.Version & ".so";
+
+   for Library_Dir use "adalib";
+   for Object_Dir use "obj";
+
+   for Source_Dirs use ("gnat_user", "gnat");
+
+   Excluded_Sources := ();
+
+   --  Choose the flash chip based on the board
+
+   Flash_Chip : $(profile_underscored)_Rp2040_Config.Flash_Chip_Kind :=
+     "generic_qspi_128";
+
+   case $(profile_underscored)_Rp2040_Config.Board is
+      when "generic_board" =>
+        Flash_Chip := $(profile_underscored)_Rp2040_Config.Flash_Chip;
+
+      when "rpi_pico"                    => Flash_Chip := "w25q16jv";
+      when "adafruit_feather_rp2040"     => Flash_Chip := "gd25q64c";
+      when "adafruit_itsybitsy_rp2040"   => Flash_Chip := "w25q64jv";
+      when "adafruit_macropad_rp2040"    => Flash_Chip := "w25q64jv";
+      when "adafruit_qt2040_trinkey"     => Flash_Chip := "w25q64jv";
+      when "adafruit_qtpy_rp2040"        => Flash_Chip := "w25q64jv";
+      when "arduino_nano_rp2040_connect" => Flash_Chip := "generic_qspi_128";
+      when "pimoroni_interstate75"       => Flash_Chip := "w25q64jv";
+      when "pimoroni_keybow2040"         => Flash_Chip := "w25q16jv";
+      when "pimoroni_pga2040"            => Flash_Chip := "w25q64jv";
+      when "pimoroni_picolipo_4m"        => Flash_Chip := "w25q32jv";
+      when "pimoroni_picolipo_16m"       => Flash_Chip := "w25q128jv";
+      when "pimoroni_picosystem"         => Flash_Chip := "w25q128jv";
+      when "pimoroni_plasma2040"         => Flash_Chip := "w25q64jv";
+      when "pimoroni_tiny2040"           => Flash_Chip := "w25q64jv";
+      when "sparkfun_micromod"           => Flash_Chip := "w25q128jv";
+      when "sparkfun_promicro"           => Flash_Chip := "w25q128jv";
+      when "sparkfun_thingplus"          => Flash_Chip := "w25q128jv";
+   end case;
+
+   --  Set the flash size (in MB) based on the flash chip
+
+   Flash_Size := "16";
+
+   case Flash_Chip is
+      when "generic_qspi_128" => Flash_Size := "16";
+      when "at25sf128a"       => Flash_Size := "16";
+      when "gd25q64c"         => Flash_Size := "8";
+      when "w25q16jv"         => Flash_Size := "2";
+      when "w25q32jv"         => Flash_Size := "4";
+      when "w25q64jv"         => Flash_Size := "8";
+      when "w25q128jv"        => Flash_Size := "16";
+   end case;
+
+   --  Select linker script
+
+   type Loaders is ("ROM", "USER");
+   Loader : Loaders := external("LOADER", "ROM");
+
+   Linker_Switches := ();
+
+   case Loader is
+      when "ROM" =>
+         Linker_Switches := Linker_Switches &
+         ("-L", Runtime_Build'Project_Dir & "/ld/flash-" & Flash_Size,
+          "-T", Runtime_Build'Project_Dir & "/ld/common-ROM.ld");
+
+      when "USER" =>
+   end case;
+
+   --  Choose which sources are excluded based on the crate configuration
+
+   Excluded_Sources := ();
+
+   case Flash_Chip is
+      when "generic_qspi_128" | "at25sf128a" | "gd25q64c" =>
+         --  Use boot2-generic_qspi.S and exclude the other variants
+         Excluded_Sources := Excluded_Sources &
+           ("boot2-generic_03.S", "boot2-w25qxx.S");
+
+      when "w25q16jv" | "w25q32jv" | "w25q64jv" | "w25q128jv"=>
+         --  Use boot2-w25qxx.S and exclude the other variants
+         Excluded_Sources := Excluded_Sources &
+           ("boot2-generic_03.S", "boot2-generic_qspi.S");
+
+   end case;
+
+   for Excluded_Source_Files use Excluded_Sources;
+
+   package Naming is
+      for Spec_Suffix ("Asm_CPP") use ".inc";
+      for Spec ("Interfaces.RP2040")          use "i-rp2040.ads";
+      for Spec ("Interfaces.RP2040.CLOCKS")   use "i-rp2040-clocks.ads";
+      for Spec ("Interfaces.RP2040.PLL_SYS")  use "i-rp2040-pll_sys.ads";
+      for Spec ("Interfaces.RP2040.PSM")      use "i-rp2040-psm.ads";
+      for Spec ("Interfaces.RP2040.RESETS")   use "i-rp2040-resets.ads";
+      for Spec ("Interfaces.RP2040.ROSC")     use "i-rp2040-rosc.ads";
+      for Spec ("Interfaces.RP2040.SIO")      use "i-rp2040-sio.ads";
+      for Spec ("Interfaces.RP2040.TIMER")    use "i-rp2040-timer.ads";
+      for Spec ("Interfaces.RP2040.WATCHDOG") use "i-rp2040-watchdog.ads";
+      for Spec ("Interfaces.RP2040.XOSC")     use "i-rp2040-xosc.ads";
+   end Naming;
+
+   package Compiler is
+      for Default_Switches ("C") use Target_Options.ALL_CFLAGS;
+      for Default_Switches ("Ada") use Target_Options.ALL_ADAFLAGS & ("-gnaty-d");
+      for Default_Switches ("Asm_Cpp") use Target_Options.ASMFLAGS;
+
+      --  Some runtime files need to be compiled with debug info, so that gdb
+      --  is not blind.
+      for Switches ("s-traceb.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g")
+         & ("-fno-optimize-sibling-calls", "-fno-inline-functions-called-once");
+      for Switches ("a-except.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g", "-O1", "-fno-inline", "-fno-toplevel-reorder");
+      for Switches ("s-excdeb.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g", "-O0");
+      for Switches ("s-assert.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g");
+      for Switches ("a-tags.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g");
+      for Switches ("raise-gcc.c") use Target_Options.ALL_CFLAGS
+         & ("-fexceptions");
+      for Switches ("unwind-sjlj-cert.c") use Target_Options.ALL_CFLAGS
+         & ("-fexceptions", "-Wno-error=unused-but-set-variable");
+
+      --  Don't inline System.Machine_Reset otherwise we can loose our common
+      --  exit system.
+
+      for Switches ("s-macres.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-fno-inline");
+
+      --  Generate ada_target_properties to give target-specific information
+      --  to formal verification tools.
+
+      for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
+         & ("-gnatet=" & Project'Project_Dir & "/ada_target_properties");
+   end Compiler;
+
+   package CodePeer is
+      for Excluded_Source_Files use ("a-chahan.adb", "a-strbou.adb", "a-strfix.adb", "a-strmap.adb", "a-strsea.adb", "a-strsup.adb", "g-io.adb", "i-c.adb", "s-arit32.adb", "s-arit64.adb", "s-casuti.adb", "s-exnint.adb", "s-exnlli.adb", "s-exnllli.ads", "s-expint.adb", "s-explli.adb", "s-expllli.ads", "s-explllu.ads", "s-expllu.adb", "s-expmod.adb", "s-expuns.adb", "s-gearop.adb", "s-imgboo.adb", "s-imgint.adb", "s-imglli.adb", "s-imgllli.ads", "s-imglllu.ads", "s-imgllu.adb", "s-imguns.adb", "s-valboo.adb", "s-valint.adb", "s-vallli.adb", "s-valllli.ads", "s-vallllu.ads", "s-valllu.adb", "s-valuns.adb", "s-valuti.adb", "s-veboop.adb", "s-widint.ads", "s-widlli.adb", "s-widllli.ads", "s-widlllu.ads", "s-widllu.adb", "s-widuns.ads");
+   end CodePeer;
+
+end Runtime_Build;

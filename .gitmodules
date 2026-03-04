@@ -1,0 +1,3 @@
+[submodule "bb-runtimes"]
+	path = bb-runtimes
+	url = https://github.com/alire-project/bb-runtimes.git

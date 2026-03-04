@@ -1,0 +1,115 @@
+with "target_options.gpr";
+with "gnat_user/$(profile_underscored)_rp2350_config.gpr";
+
+project Runtime_Build is
+   for Languages use ($(languages_list));
+   for Runtime ("Ada") use Project'Project_Dir;
+   for Target use "arm-eabi";
+
+   for Library_Auto_Init use "False";
+   for Library_Name use "gnat";
+   for Library_Kind use Target_Options.Lib;
+   for Library_Options use Target_Options.LOPTIONS;
+   for Library_Version use "libgnat-" & Target_Options.Version & ".so";
+
+   for Library_Dir use "adalib";
+   for Object_Dir use "obj";
+
+   for Source_Dirs use ("gnat_user", "gnat");
+
+   Excluded_Sources := ();
+
+   --  Choose the flash size (in MB) based on the board
+
+   Flash_Size := "2";
+
+   case $(profile_underscored)_Rp2350_Config.Board is
+      when "generic_board" =>
+        Flash_Size := $(profile_underscored)_Rp2350_Config.Flash_Size;
+
+      when "rpi_pico2"                 => Flash_Size := "4";
+      when "pimoroni_pico_lipo_2_xl_w" => Flash_Size := "16";
+      when "pimoroni_pico_plus_2"      => Flash_Size := "16";
+      when "pimoroni_plasma_2350"      => Flash_Size := "4";
+      when "pimoroni_tiny_2350"        => Flash_Size := "4";
+      when "pimoroni_rp2350_stamp_xl"  => Flash_Size := "16";
+      when "pimoroni_rp2350_stamp"     => Flash_Size := "16";
+      when "pimoroni_pga2350"          => Flash_Size := "16";
+      when "adafruit_feather_rp2350"   => Flash_Size := "4";
+      when "adafruit_metro_rp2350"     => Flash_Size := "16";
+      when "adafruit_fruit_jam"        => Flash_Size := "16";
+   end case;
+
+   --  Select linker script
+
+   type Loaders is ("ROM", "USER");
+   Loader : Loaders := external("LOADER", "ROM");
+
+   Linker_Switches := ();
+
+   case Loader is
+      when "ROM" =>
+         Linker_Switches := Linker_Switches &
+         ("-L", Runtime_Build'Project_Dir & "/ld/flash-" & Flash_Size,
+          "-T", Runtime_Build'Project_Dir & "/ld/common-ROM.ld");
+
+      when "USER" =>
+   end case;
+
+   package Naming is
+      for Spec_Suffix ("Asm_CPP") use ".inc";
+      for Spec ("Interfaces.RP2350")          use "i-rp2350.ads";
+      for Spec ("Interfaces.RP2350.CLOCKS")   use "i-rp2350-clocks.ads";
+      for Spec ("Interfaces.RP2350.PLL_SYS")  use "i-rp2350-pll_sys.ads";
+      for Spec ("Interfaces.RP2350.PSM")      use "i-rp2350-psm.ads";
+      for Spec ("Interfaces.RP2350.RESETS")   use "i-rp2350-resets.ads";
+      for Spec ("Interfaces.RP2350.ROSC")     use "i-rp2350-rosc.ads";
+      for Spec ("Interfaces.RP2350.SIO")      use "i-rp2350-sio.ads";
+      for Spec ("Interfaces.RP2350.TICKS")    use "i-rp2350-ticks.ads";
+      for Spec ("Interfaces.RP2350.TIMER0")   use "i-rp2350-timer0.ads";
+      for Spec ("Interfaces.RP2350.TIMER1")   use "i-rp2350-timer1.ads";
+      for Spec ("Interfaces.RP2350.WATCHDOG") use "i-rp2350-watchdog.ads";
+      for Spec ("Interfaces.RP2350.XOSC")     use "i-rp2350-xosc.ads";
+   end Naming;
+
+   package Compiler is
+      for Default_Switches ("C") use Target_Options.ALL_CFLAGS;
+      for Default_Switches ("Ada") use Target_Options.ALL_ADAFLAGS & ("-gnaty-d");
+      for Default_Switches ("Asm_Cpp") use Target_Options.ASMFLAGS;
+
+      --  Some runtime files need to be compiled with debug info, so that gdb
+      --  is not blind.
+      for Switches ("s-traceb.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g")
+         & ("-fno-optimize-sibling-calls", "-fno-inline-functions-called-once");
+      for Switches ("a-except.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g", "-O1", "-fno-inline", "-fno-toplevel-reorder");
+      for Switches ("s-excdeb.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g", "-O0");
+      for Switches ("s-assert.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g");
+      for Switches ("a-tags.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-g");
+      for Switches ("raise-gcc.c") use Target_Options.ALL_CFLAGS
+         & ("-fexceptions");
+      for Switches ("unwind-sjlj-cert.c") use Target_Options.ALL_CFLAGS
+         & ("-fexceptions", "-Wno-error=unused-but-set-variable");
+
+      --  Don't inline System.Machine_Reset otherwise we can loose our common
+      --  exit system.
+
+      for Switches ("s-macres.adb") use Target_Options.ALL_ADAFLAGS
+         & ("-fno-inline");
+
+      --  Generate ada_target_properties to give target-specific information
+      --  to formal verification tools.
+
+      for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
+         & ("-gnatet=" & Project'Project_Dir & "/ada_target_properties");
+   end Compiler;
+
+   package CodePeer is
+      for Excluded_Source_Files use ("a-chahan.adb", "a-strbou.adb", "a-strfix.adb", "a-strmap.adb", "a-strsea.adb", "a-strsup.adb", "g-io.adb", "i-c.adb", "s-arit32.adb", "s-arit64.adb", "s-casuti.adb", "s-exnint.adb", "s-exnlli.adb", "s-exnllli.ads", "s-expint.adb", "s-explli.adb", "s-expllli.ads", "s-explllu.ads", "s-expllu.adb", "s-expmod.adb", "s-expuns.adb", "s-gearop.adb", "s-imgboo.adb", "s-imgint.adb", "s-imglli.adb", "s-imgllli.ads", "s-imglllu.ads", "s-imgllu.adb", "s-imguns.adb", "s-valboo.adb", "s-valint.adb", "s-vallli.adb", "s-valllli.ads", "s-vallllu.ads", "s-valllu.adb", "s-valuns.adb", "s-valuti.adb", "s-veboop.adb", "s-widint.ads", "s-widlli.adb", "s-widllli.ads", "s-widlllu.ads", "s-widllu.adb", "s-widuns.ads");
+   end CodePeer;
+
+end Runtime_Build;

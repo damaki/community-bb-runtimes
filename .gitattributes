@@ -1,0 +1,4 @@
+# Don't do text manipulations (line ending changes) on text files.
+# This makes sure that the runtime's style checks don't fail when building
+# the runtime (-gnatyd).
+* -text

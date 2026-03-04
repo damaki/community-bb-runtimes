@@ -1,0 +1,56 @@
+with "target_options.gpr";
+with "runtime_build.gpr";
+with "gnat_user/$(profile_underscored)_rp2040_config.gpr";
+
+project Ravenscar_Build is
+   for Languages use ("Ada");
+
+   for Runtime ("Ada") use Runtime_Build'Runtime("Ada");
+   for Target use Runtime_Build'Target;
+
+   for Library_Auto_Init use "False";
+   for Library_Name use "gnarl";
+   for Library_Kind use Runtime_Build'Library_Kind;
+   for Library_Options use Runtime_Build'Library_Options;
+   for Library_Version use "libgnarl-" & Target_Options.Version & ".so";
+
+   for Library_Dir use "adalib";
+   for Object_Dir use "obj";
+
+   for Source_Dirs use ("gnarl_user", "gnarl");
+
+   --  Exclude sources that are not needed for the specified MCU config
+
+   Excluded_Sources := ();
+
+   case $(profile_underscored)_Rp2040_Config.Max_CPUs is
+      when "1" =>
+         Excluded_Sources := Excluded_Sources & ("a-intnam-2.ads");
+
+      when others =>
+         Excluded_Sources := Excluded_Sources & ("a-intnam-1.ads");
+   end case;
+
+   for Excluded_Source_Files use Excluded_Sources;
+
+   package Naming is
+      for Spec ("Ada.Interrupts.Names") use
+        "a-intnam-" & $(profile_underscored)_Rp2040_Config.Max_CPUs & ".ads";
+   end Naming;
+
+   package Compiler is
+      for Default_Switches ("C") use Target_Options.GNARL_CFLAGS;
+      for Default_Switches ("Ada") use Target_Options.GNARL_ADAFLAGS & ("-gnaty-d");
+      for Default_Switches ("Asm_Cpp") use Target_Options.ASMFLAGS;
+
+      --  Always build System.BB.CPU_Primitives at -O2 as some targets may make
+      --  use of inline assembly that rely on specific compiler behaviour to
+      --  load constants that are not enabled at -O0.
+      for Switches ("s-bbcppr.adb") use Target_Options.GNARL_ADAFLAGS & ("-O2", "-gnaty-d");
+      --  Some runtime files need to be compiled with debug info, so that gdb
+      --  is not blind.
+      for Switches ("s-tasdeb.adb") use Target_Options.ALL_ADAFLAGS
+        & ("-g", "-O0", "-gnaty-d");
+   end Compiler;
+
+end Ravenscar_Build;

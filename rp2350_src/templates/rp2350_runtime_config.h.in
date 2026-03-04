@@ -1,0 +1,6 @@
+#ifndef RP2350_RUNTIME_CONFIG_H
+#define RP2350_RUNTIME_CONFIG_H
+
+#include "$(profile_underscored)_$(target)_config.h"
+
+#endif /* RP2350_RUNTIME_CONFIG_H */
