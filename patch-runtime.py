@@ -25,6 +25,14 @@ project_file_withs_ravenscar = """\
    with "ravenscar_build.gpr";\
 """
 
+target_src_dirs = {
+    "rp2040": "rp2040_src",
+    "rp2350": "rp2350_src",
+    "nrf52832": "nrf52_src",
+    "nrf52833": "nrf52_src",
+    "nrf52840": "nrf52_src",
+}
+
 
 def patch_target_options(gpr_file: pathlib.Path, profile: str, target: str):
     """Patch the target_options.gpr file to add the crate name as a prefix
@@ -116,7 +124,7 @@ def main():
     parser.add_argument(
         "--target",
         type=str,
-        choices=["rp2040", "rp2350"],
+        choices=target_src_dirs.keys(),
         required=True,
         help="The name of the target (e.g. rp2040). Must not contain spaces",
     )
@@ -165,7 +173,7 @@ def main():
     }
 
     target_templates_dir = (
-        pathlib.Path(__file__).parent / f"{target}_src" / "templates"
+        pathlib.Path(__file__).parent / target_src_dirs[target] / "templates"
     )
 
     gen_templates_from_manifest(
@@ -175,11 +183,14 @@ def main():
         template_values=template_values,
     )
 
-    shutil.copytree(
-        src=pathlib.Path(__file__).parent / f"{target}_src" / "ld",
-        dst=runtime_dir / "ld",
-        dirs_exist_ok=True,
-    )
+    ld_dir = pathlib.Path(__file__).parent / target_src_dirs[target] / "ld"
+
+    if ld_dir.exists():
+        shutil.copytree(
+            src=ld_dir,
+            dst=runtime_dir / "ld",
+            dirs_exist_ok=True,
+        )
 
 
 if __name__ == "__main__":

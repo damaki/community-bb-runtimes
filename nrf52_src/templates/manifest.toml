@@ -1,0 +1,7 @@
+[[template]]
+source = "alire.toml.in"
+target = "alire.toml"
+
+[[template]]
+source = "nrf52_runtime_config.ads.in"
+target = "gnat_user/nrf52_runtime_config.ads"
