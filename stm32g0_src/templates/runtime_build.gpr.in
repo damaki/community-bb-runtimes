@@ -1,0 +1,143 @@
+with "target_options.gpr";
+with "gnat_user/$(profile_underscored)_stm32g0xx_config.gpr";
+
+project Runtime_Build is
+  for Languages use ($(languages_list));
+  for Runtime ("Ada") use Project'Project_Dir;
+  for Target use "arm-eabi";
+
+  for Library_Auto_Init use "False";
+  for Library_Name use "gnat";
+  for Library_Kind use Target_Options.Lib;
+  for Library_Options use Target_Options.LOPTIONS;
+  for Library_Version use "libgnat-" & Target_Options.Version & ".so";
+
+  for Library_Dir use "adalib";
+  for Object_Dir use "obj";
+
+  for Source_Dirs use ("gnat_user", "gnat");
+
+  Excluded_Sources := ();
+
+  ROM_Size := "16";
+  RAM_Size := "8";
+
+  --  Determine the ROM size based on the "flash memory size" part of the
+  --  STM32 part number.
+
+  case $(profile_underscored)_Stm32g0xx_Config.MCU_Flash_Memory_Size is
+    when "4"    => ROM_Size := "16";
+    when "6"    => ROM_Size := "32";
+    when "8"    => ROM_Size := "64";
+    when "B"    => ROM_Size := "128";
+    when "C"    => ROM_Size := "256";
+    when "E"    => ROM_Size := "512";
+    when others => ROM_Size := "16";
+  end case;
+
+  --  Determine the RAM size
+
+  case $(profile_underscored)_Stm32g0xx_Config.MCU_Sub_Family is
+     when "G030" | "G031" | "G041" =>
+        RAM_Size := "8";
+
+     when "G050" | "G051" | "G061" =>
+        case $(profile_underscored)_Stm32g0xx_Config.RAM_Parity_Check is
+           when "Enabled"  => RAM_Size := "16";
+           when "Disabled" => RAM_Size := "18";
+        end case;
+
+     when "G070" | "G071" | "G081" =>
+        case $(profile_underscored)_Stm32g0xx_Config.RAM_Parity_Check is
+           when "Enabled"  => RAM_Size := "32";
+           when "Disabled" => RAM_Size := "36";
+        end case;
+
+     when "G0B0" | "G0B1" | "G0C1" =>
+        case $(profile_underscored)_Stm32g0xx_Config.RAM_Parity_Check is
+           when "Enabled"  => RAM_Size := "128";
+           when "Disabled" => RAM_Size := "144";
+        end case;
+  end case;
+
+  --  Determine the minor part (last digit) of the sub-family
+
+  type MCU_Sub_Family_Minor_Type is ("0", "1");
+  MCU_Sub_Family_Minor : MCU_Sub_Family_Minor_Type := "0";
+
+  case $(profile_underscored)_Stm32g0xx_Config.MCU_Sub_Family is
+     when "G030" | "G050" | "G070" | "G0B0" =>
+       MCU_Sub_Family_Minor := "0";
+
+     when "G031" | "G041" | "G051" | "G061" | "G071" | "G081" | "G0B1" | "G0C1" =>
+       MCU_Sub_Family_Minor := "1";
+  end case;
+
+  --  Select linker script
+
+  type Loaders is ("ROM", "RAM", "USER");
+  Loader : Loaders := external("LOADER", "ROM");
+
+  Linker_Switches := ();
+
+  case Loader is
+    when "ROM" =>
+      Linker_Switches := Linker_Switches &
+        ("-L", Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
+         "-L", Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
+         "-T", "common-ROM.ld");
+
+    when "RAM" =>
+      Linker_Switches := Linker_Switches &
+        ("-L", Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
+         "-L", Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
+         "-T", "common-RAM.ld");
+
+    when "USER" =>
+  end case;
+
+  package Naming is
+     for Spec_Suffix ("Asm_CPP") use ".inc";
+  end Naming;
+
+  package Compiler is
+     for Default_Switches ("C") use Target_Options.ALL_CFLAGS;
+     for Default_Switches ("Ada") use Target_Options.ALL_ADAFLAGS & ("-gnaty-d");
+     for Default_Switches ("Asm_Cpp") use Target_Options.ASMFLAGS;
+
+     --  Some runtime files need to be compiled with debug info, so that gdb
+     --  is not blind.
+     for Switches ("s-traceb.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g")
+       & ("-fno-optimize-sibling-calls", "-fno-inline-functions-called-once");
+     for Switches ("a-except.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g", "-O1", "-fno-inline", "-fno-toplevel-reorder");
+     for Switches ("s-excdeb.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g", "-O0");
+     for Switches ("s-assert.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g");
+     for Switches ("a-tags.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g");
+     for Switches ("raise-gcc.c") use Target_Options.ALL_CFLAGS
+       & ("-fexceptions");
+     for Switches ("unwind-sjlj-cert.c") use Target_Options.ALL_CFLAGS
+       & ("-fexceptions", "-Wno-error=unused-but-set-variable");
+
+     --  Don't inline System.Machine_Reset otherwise we can loose our common
+     --  exit system.
+
+     for Switches ("s-macres.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-fno-inline");
+
+     --  Generate ada_target_properties to give target-specific information
+     --  to formal verification tools.
+
+     for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
+       & ("-gnatet=" & Project'Project_Dir & "/ada_target_properties");
+  end Compiler;
+
+  package CodePeer is
+    for Excluded_Source_Files use ("a-chahan.adb", "a-strbou.adb", "a-strfix.adb", "a-strmap.adb", "a-strsea.adb", "a-strsup.adb", "g-io.adb", "i-c.adb", "s-arit32.adb", "s-arit64.adb", "s-casuti.adb", "s-exnint.adb", "s-exnlli.adb", "s-exnllli.ads", "s-expint.adb", "s-explli.adb", "s-expllli.ads", "s-explllu.ads", "s-expllu.adb", "s-expmod.adb", "s-expuns.adb", "s-gearop.adb", "s-imgboo.adb", "s-imgint.adb", "s-imglli.adb", "s-imgllli.ads", "s-imglllu.ads", "s-imgllu.adb", "s-imguns.adb", "s-valboo.adb", "s-valint.adb", "s-vallli.adb", "s-valllli.ads", "s-vallllu.ads", "s-valllu.adb", "s-valuns.adb", "s-valuti.adb", "s-veboop.adb", "s-widint.ads", "s-widlli.adb", "s-widllli.ads", "s-widlllu.ads", "s-widllu.adb", "s-widuns.ads");
+  end CodePeer;
+
+end Runtime_Build;

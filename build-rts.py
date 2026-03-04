@@ -373,6 +373,57 @@ class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
             "stm32f0_src/stm32f0x8/svd/a-intnam_8.ads",
         )
 
+
+class Stm32G0(arm.cortexm.CortexM0P):
+    @property
+    def name(self):
+        return "stm32g0xx"
+
+    @property
+    def use_semihosting_io(self):
+        return True
+
+    @property
+    def loaders(self):
+        return ("ROM", "RAM")
+
+    @property
+    def system_ads(self):
+        return {
+            "light": "system-xi-arm.ads",
+            "light-tasking": "system-xi-armv6m-sfp.ads",
+            "embedded": "system-xi-armv6m-full.ads",
+        }
+
+    def __init__(self):
+        super(Stm32G0, self).__init__()
+
+        self.add_linker_script("stm32g0_src/ld/common-RAM.ld")
+        self.add_linker_script("stm32g0_src/ld/common-ROM.ld")
+
+        # Common source files
+        self.add_gnat_sources(
+            "stm32g0_src/start-rom.S",
+            "stm32g0_src/start-ram.S",
+            "stm32g0_src/setup_pll.ads",
+            "stm32g0_src/setup_pll.adb",
+            "stm32g0_src/s-bbpara.ads",
+            "stm32g0_src/s-bbbopa.ads",
+            "stm32g0_src/s-bbmcpa.ads",
+            "stm32g0_src/svd/handler.S",
+            "stm32g0_src/svd/interfaces-stm32.ads",
+            "stm32g0_src/svd/interfaces-stm32-flash.ads",
+            "stm32g0_src/svd/interfaces-stm32-rcc.ads",
+        )
+
+        self.add_gnarl_sources(
+            "src/s-bbbosu__armv6m.adb",
+            "src/s-bcpcst__pendsv.adb",
+            "stm32g0_src/svd/a-intnam-g0x0.ads",
+            "stm32g0_src/svd/a-intnam-g0x1.ads",
+        )
+
+
 def build_configs(target):
     if target == "rp2040":
         return RP2040()
@@ -386,6 +437,8 @@ def build_configs(target):
         return NRF52840()
     elif target == "stm32f0xx":
         return Stm32F0()
+    elif target == "stm32g0xx":
+        return Stm32G0()
     else:
         assert False, "unexpected target: %s" % target
 
