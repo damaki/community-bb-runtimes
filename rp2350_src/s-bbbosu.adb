@@ -341,8 +341,16 @@ package body System.BB.Board_Support is
       IRQ       : IRQ_ID;
       Interrupt : Interrupt_ID;
       Res       : Word;
+      PRIMASK   : Word;
 
    begin
+      Asm ("mrs %0, PRIMASK",
+           Outputs => Word'Asm_Output ("=&r", PRIMASK),
+           Volatile => True);
+      Asm ("msr PRIMASK, %0",
+           Inputs  => Word'Asm_Input  ("r", 1),
+           Volatile => True);
+
       --  The exception number is read from the IPSR
 
       Asm ("mrs %0, ipsr",
@@ -367,6 +375,11 @@ package body System.BB.Board_Support is
 
       Interrupt_Wrapper (Interrupt);
 
+      --  Restore interrupt mask
+
+      Asm ("msr PRIMASK, %0",
+           Inputs => Word'Asm_Input ("r", PRIMASK),
+           Volatile => True);
    end Interrupt_Handler;
 
    ------------------------------
