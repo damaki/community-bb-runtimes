@@ -108,7 +108,7 @@ package body System.BB.CPU_Primitives.Context_Switch_Trigger is
             "ldr r0, [r0]" & NL & --  Read CPUID register into r0
             "lsl r0, #2" & NL --  multiply by 4
           else
-            "ldr r0, =0") &
+            "ldr r0, =0" & NL) &
 
          "ldr r2,=__gnat_running_thread_table" & NL &
          "mrs  r12, PSP "     & NL & -- Retrieve current PSP
