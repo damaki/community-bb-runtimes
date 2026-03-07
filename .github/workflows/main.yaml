@@ -54,4 +54,12 @@ jobs:
       - name: Run tests
         run: |
           cd tests
-          pytest . -v
+          pytest . -v --junit-xml=reports/runtime-tests.xml
+
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}       # run this step even if previous step failed
+        with:
+          name: Runtime Tests
+          path: tests/reports/*.xml
+          reporter: java-junit
