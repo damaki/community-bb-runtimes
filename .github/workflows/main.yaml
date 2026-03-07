@@ -7,7 +7,7 @@ on:
 
 jobs:
 
-  build:
+  build-and-test:
     strategy:
       matrix:
         # Also build on Windows since there have been some windows-specific
@@ -42,3 +42,16 @@ jobs:
             (cd $dir && alr build --validation)
             echo "::endgroup::"
           done
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install Test Dependencies
+        run: |
+          pip install -r tests/requirements.txt
+
+      - name: Run tests
+        run: |
+          cd tests
+          pytest . -v
