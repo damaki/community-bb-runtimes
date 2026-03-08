@@ -29,7 +29,7 @@ jobs:
         uses: battila7/get-version-action@v2
 
       - name: Generate Runtimes
-        run: ./generate-all.sh --version ${{ steps.get_version.outputs.version-without-v }}
+        run: ./generate-runtimes.sh --version ${{ steps.get_version.outputs.version-without-v }}
 
       - name: Archive Runtimes
         run: |

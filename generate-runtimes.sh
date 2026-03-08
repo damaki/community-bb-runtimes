@@ -1,22 +1,27 @@
 #!/bin/bash
 
-# This script generates all the runtime sources.
+# This script generates the runtime sources.
 #
 # It takes an optional --version argument which is set as the version field
 # in the generated alire.toml files.
+#
+# By default, this script generates the runtimes for all supported targets.
+# To generate the runtimes for a single target, use --target.
 #
 # Note that any existing "install" folder should be deleted before calling
 # this script, otherwise the runtime generation will fail (bb-runtimes will
 # refuse to overwrite existing runtimes).
 #
 # Examples:
-# ./generate-all.sh
-# ./generate-all.sh --version 1.2.3
+# ./generate-runtimes.sh
+# ./generate-runtimes.sh --version 1.2.3
+# ./generate-runtimes.sh --target rp2040
 
 set -e
 
 ARGUMENT_LIST=(
   "version"
+  "target"
 )
 
 # read arguments
@@ -36,13 +41,18 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
 
+    --target)
+      target=$2
+      shift 2
+      ;;
+
     *)
       break
       ;;
   esac
 done
 
-targets=(\
+all_targets=(\
   "rp2040" \
   "rp2350" \
   "nrf52832" \
@@ -53,9 +63,16 @@ targets=(\
   "stm32g4xx" \
 )
 
+if [[ -z $target ]]; then
+    targets=("${all_targets[@]}")
+else
+    targets=($target)
+fi
+
 profiles=("light" "light-tasking" "embedded")
 
 echo "Generating runtimes"
+
 python build-rts.py \
     --rts-src-descriptor=bb-runtimes/gnat_rts_sources/lib/gnat/rts-sources.json \
     ${targets[@]}
