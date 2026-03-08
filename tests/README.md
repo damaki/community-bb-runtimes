@@ -59,17 +59,17 @@ want to test on, and which ports it should use to communicate with the board
 The following sections provide instructions for running the tests on specific
 target boards.
 
-### Testing on the RP2040
+### Testing on the RP2040 and RP2350
 
-Running the tests on an RP2040 requires the following hardware:
- * A Raspberry Pi Pico board
+Running the tests on an RP2040 or RP2350 requires the following hardware:
+ * A Raspberry Pi Pico board (for RP2040) or Raspberry Pi Pico 2 (for RP2350)
  * A J-Link debugger
 
 and the following software:
  * the [J-Link Software Pack](https://www.segger.com/downloads/jlink/)
    (these instructions were written using version 9.24a)
 
-The following pins must be connected between the J-Link and Pico:
+The following pins must be connected between the J-Link and Pico / Pico2:
 
 | J-Link Pin | Pico Pin |
 |------------|----------|
@@ -82,11 +82,17 @@ The following pins must be connected between the J-Link and Pico:
 Next, start the J-Link GDB server in a terminal (you may need to tweak these
 settings for your environment):
 
+**For RP2040:**
 ```sh
 JLinkGDBServerCLExe -USB -endian little -device RP2040_M0_0 -if SWD -speed auto -noir -LocalhostOnly -nologtofile -port 2331 -SWOPort 2332 -TelnetPort 2333
 ```
 
-> [!NOTE]
+**For RP2350:**
+```sh
+JLinkGDBServerCLExe -USB -endian little -device RP2350_M33_0 -if SWD -speed auto -noir -LocalhostOnly -nologtofile -port 2331 -SWOPort 2332 -TelnetPort 2333
+```
+
+> [!TIP]
 > You can also run the J-Link GDB server GUI (using `JLinkGDBServerExe`)
 > instead of using the command-line version, if you prefer.
 
@@ -143,8 +149,14 @@ Now, you can configure and run the tests to tell it which hardware we're
 targeting (the rp2040), and which ports to use to commuicate with the J-Link
 GDB server and telnet ports:
 
+**For RP2040:**
 ```sh
 pytest . --target-board=rp2040 --gdbserver-port=2331 --text-io-port=2333
+```
+
+**For RP2350:**
+```sh
+pytest . --target-board=rp2350 --gdbserver-port=2331 --text-io-port=2333
 ```
 
 Note that the above command will also run the "build only" tests. If you only
