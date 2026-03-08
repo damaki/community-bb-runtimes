@@ -5,9 +5,12 @@ import re
 from typing import Dict, Tuple, Any
 
 
-def split_runtime_crate_name(runtime_crate_dir: pathlib.Path) -> Tuple[str,str]:
+def split_runtime_crate_name(runtime_crate_dir: pathlib.Path) -> Tuple[str, str]:
     """Split the name of a runtime crate into its profile and target name components"""
-    m = re.match(r"(light|light-tasking|embedded)-(\w+)", runtime_crate_dir.name)
+    m = re.match(
+        r"(light_tasking|light|embedded)_(\w+)",
+        runtime_crate_dir.name.replace("-", "_"),
+    )
     return m.group(1), m.group(2)
 
 
@@ -21,7 +24,7 @@ def get_runtime_profile(runtime_crate_dir: pathlib.Path) -> str:
     return split_runtime_crate_name(runtime_crate_dir)[0]
 
 
-def get_config_vars(runtime_crate_dir: pathlib.Path) -> Dict[str,Dict[str,Any]]:
+def get_config_vars(runtime_crate_dir: pathlib.Path) -> Dict[str, Dict[str, Any]]:
     """Load the configuration.variables part of a runtime's Alire manifest"""
     with open(runtime_crate_dir / "alire.toml", "rb") as f:
         manifest = tomllib.load(f)
@@ -32,7 +35,9 @@ def get_config_vars(runtime_crate_dir: pathlib.Path) -> Dict[str,Dict[str,Any]]:
     return {}
 
 
-def get_config_values(config_vars: Dict, updated_values: Dict[str, str]) -> Dict[str,Any]:
+def get_config_values(
+    config_vars: Dict, updated_values: Dict[str, str]
+) -> Dict[str, Any]:
     """Gets the set of configuration.values to apply in the test crate's Alire manifest"""
     return {
         var_name: (
@@ -72,12 +77,12 @@ class TargetInfo:
         return get_runtime_profile(self._runtime_crate_dir)
 
     @property
-    def configuration_variables(self) -> Dict[str,Dict[str,Any]]:
+    def configuration_variables(self) -> Dict[str, Dict[str, Any]]:
         """Get the configuration.variables from the runtime crate's Alire manifest"""
         return self._configuration_variables
 
     @property
-    def configuration_values(self) -> Dict[str,Any]:
+    def configuration_values(self) -> Dict[str, Any]:
         """Get the configuration.values to apply in the test crate's Alire manifest"""
         return self._configuration_values
 
