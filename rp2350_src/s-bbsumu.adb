@@ -55,6 +55,14 @@ package body Multiprocessors is
      with Volatile, Address => NVIC_Base + 16#200#;
    --  NVIC Interrupt Set Pending Register (ISPR)
 
+   DEMCR : Word
+     with Volatile, Address => 16#E000_EDFC#;
+   --  Debug monitor control register
+
+   CPACR : Word
+     with Volatile, Address => 16#E000_ED88#;
+   --  Coprocessor Access Control Register
+
    procedure Poke_Handler
      with Export => True,
      External_Name => "__gnat_poke_handler";
@@ -297,6 +305,13 @@ package body Multiprocessors is
       --  we can successfully context switch on core1.
 
       System.BB.CPU_Primitives.Initialize_CPU;
+
+      --  Enable the debug monitor so that bkpt instructions are not treated
+      --  as a hard fault when no debugger is attached.
+      DEMCR := DEMCR or 16#1_0000#;
+
+      --  Enable the FPU
+      CPACR := CPACR or 16#F0_0000#;
 
       --  Prevent FIFO and doorbell interrupts from triggering before the slave
       --  is fully initialized.
