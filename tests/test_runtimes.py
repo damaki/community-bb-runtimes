@@ -1,5 +1,6 @@
 import conftest
 import itertools
+import os
 import pathlib
 import pytest
 import re
@@ -9,7 +10,7 @@ import support.test_configs
 from support.harnesses import TestHarness
 from support.target_info import TargetInfo
 from support.target_interface import JLinkInterface
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 
 def get_test_id(config: Tuple[str, str, Dict[str, str]]) -> str:
@@ -36,6 +37,8 @@ def test_build(
     testcase_dir: str,
     runtime_dir: str,
     crate_config_values: Dict[str, str],
+    working_dir: Optional[str],
+    keep_build_files: bool,
 ):
     """
     Tests that each test application can be successfully compiled and linked
@@ -51,7 +54,14 @@ def test_build(
         overridden_config_values=crate_config_values,
     )
 
-    with tempfile.TemporaryDirectory() as tmpdir:
+    if working_dir is not None:
+        os.makedirs(working_dir, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(
+        prefix=request.node.callspec.id,
+        dir=working_dir,
+        delete=working_dir is None or not keep_build_files,
+    ) as tmpdir:
         tc = TestHarness(
             testcase_dir=testcase_dir,
             working_dir=pathlib.Path(tmpdir),
@@ -77,6 +87,8 @@ def test_execute_on_target(
     target_board,
     gdbserver_port,
     text_io_port,
+    working_dir: Optional[str],
+    keep_build_files: bool,
 ):
     """
     Test that a test case program runs correctly on the target hardware
@@ -109,7 +121,14 @@ def test_execute_on_target(
             f"target '{target_board}'"
         )
 
-    with tempfile.TemporaryDirectory() as tmpdir:
+    if working_dir is not None:
+        os.makedirs(working_dir, exist_ok=True)
+
+    with tempfile.TemporaryDirectory(
+        prefix=request.node.callspec.id,
+        dir=working_dir,
+        delete=working_dir is None or not keep_build_files,
+    ) as tmpdir:
         tc = TestHarness(
             testcase_dir=testcase_dir,
             working_dir=pathlib.Path(tmpdir),
@@ -128,7 +147,7 @@ def test_execute_on_target(
         ) as target_if:
             target_if.load(tc.executable_path)
             target_if.reset()
-            target_if.read_io(timeout=0.0) # Clear input buffer
+            target_if.read_io(timeout=0.0)  # Clear input buffer
             target_if.run()
 
             # Keep reading output until the TEST COMPLETE marker is found
@@ -140,4 +159,3 @@ def test_execute_on_target(
                 expected_output = f.read()
 
             assert actual_output == expected_output
-

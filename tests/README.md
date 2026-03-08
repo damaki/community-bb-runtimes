@@ -35,6 +35,18 @@ To run only the tests for a specific target, e.g. the rp2040:
 pytest . -k rp2040
 ```
 
+By default, any intermediate working files (e.g. build outputs) are stored in
+a per-testcase temporary directory that is deleted when the test is completed.
+When debugging test failures, it is sometimes useful to keep those files around
+so that they can be inspected after the tests. To do this, use `--working-dir`
+to set the directory where these temporary directories will be created, and
+use `--keep-build-files` to avoid deleting them when the test has completed.
+For example:
+
+```sh
+pytest . --working-dir=out --keep-build-files
+```
+
 ##  Running the Tests on Target Hardware
 
 By default, the tests only try compiling and linking programs against the
