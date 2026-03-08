@@ -62,7 +62,9 @@ def generate_tests() -> List[Tuple[str, str, Dict[str, str]]]:
     # configuration values
 
     for runtime_dir in runtime_dirs:
-        m = re.match(r"(light|light-tasking|embedded)-(\w+)", runtime_dir.name)
+        m = re.match(
+            r"(light_tasking|light|embedded)_(\w+)", runtime_dir.name.replace("-", "_")
+        )
 
         if m:
             profile = m.group(1)
@@ -72,8 +74,6 @@ def generate_tests() -> List[Tuple[str, str, Dict[str, str]]]:
                 if target in atc["targets"] and profile in atc["profiles"]:
                     for testcase_dir in testcase_dirs:
                         for config_vals in atc["configuration.values"]:
-                            configs.append(
-                                (testcase_dir, runtime_dir, config_vals)
-                            )
+                            configs.append((testcase_dir, runtime_dir, config_vals))
 
     return configs
