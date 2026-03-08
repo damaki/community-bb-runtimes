@@ -133,6 +133,24 @@ _start_rom:
     sev
 
 1:
+	/* Enable the debug monitor so that bkpt instructions are not treated
+	* as hard fault when no debugger is attached */
+	.set    DEMCR,  0xE000EDFC
+	ldr     r0, =DEMCR
+	ldr     r1, [r0]
+	orr     r1, r1, #0x10000 /* Set MON_EN in DEMCR */
+	str     r1, [r0]
+
+	/* Enable FPU */
+	movw     r0,#0xED88
+	movt     r0,#0xE000
+	ldr      r1,[r0]
+	orr      r1,r1,#(0xF << 20)
+	str      r1,[r0]
+
+	dsb
+	isb
+
     /* Check which core we're running on */
     ldr r0, =0xd0000000 /* CPUID register */
     ldr r0, [r0]
