@@ -33,6 +33,11 @@ class TestHarness:
         self._generate_gpr()
         self._generate_alire_manifest()
 
+    @property
+    def executable_path(self) -> pathlib.Path:
+        """Get the path to the executable that is built by the test harness"""
+        return self._testcase_working_dir / "obj" / "test"
+
     def _generate_gpr(self):
         """Generate a test.gpr file in the harness's working directory"""
         with open(self._testcase_working_dir / "test.gpr", "w") as f:
@@ -73,7 +78,6 @@ end Test;
                 escaped_value = value
 
             res = f"{key} = {escaped_value}"
-            print(res)
             return res
 
         def escaped_runtime_crate_path():
