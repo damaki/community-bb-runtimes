@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         # Also build on Windows since there have been some windows-specific
-        # problems in the past.
+        # problems in the past around line ending style checks.
         os: ["ubuntu-latest", "windows-latest"]
 
     runs-on: ${{ matrix.os }}
@@ -43,22 +43,33 @@ jobs:
             echo "::endgroup::"
           done
 
+      # Don't run tests on Windows since it's so slow compared to Linux.
+      #
+      # Once we've proven that the runtimes can be built on Windows (in the
+      # above step), there's not much point in also building test apps against
+      # the runtimes since the Windows and Linux gnat_arm_elf toolchains should
+      # behave the same at this point, and we're not interested in checking
+      # for differences in those toolchains here.
+
       - uses: actions/setup-python@v4
+        if: ${{ matrix.os != 'windows-latest' }}
         with:
           python-version: "3.12"
 
       - name: Install Test Dependencies
+        if: ${{ matrix.os != 'windows-latest' }}
         run: |
           pip install -r tests/requirements.txt
 
       - name: Run tests
+        if: ${{ matrix.os != 'windows-latest' }}
         run: |
           cd tests
           pytest . -v --junit-xml=reports/runtime-tests.xml
 
       - name: Test Report
         uses: dorny/test-reporter@v2
-        if: ${{ !cancelled() }}       # run this step even if previous step failed
+        if: ${{ !cancelled() && (matrix.os != 'windows-latest') }} # run this step even if previous step failed
         with:
           name: Runtime Tests
           path: tests/reports/*.xml
