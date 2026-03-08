@@ -1,7 +1,9 @@
+import importlib.util
 import pathlib
 import re
 import shutil
 import subprocess
+import sys
 from typing import Dict
 
 import support.target_info
@@ -37,6 +39,36 @@ class TestHarness:
     def executable_path(self) -> pathlib.Path:
         """Get the path to the executable that is built by the test harness"""
         return self._testcase_working_dir / "obj" / "test"
+
+    def check_test_conditions(self):
+        """
+        Check if the testcase has an 'opt.py' file and if so, load it and call
+        its check_test_conditions() function.
+
+        This may call pytest.skip() if the test is not applicable in certain
+        conditions.
+        """
+        opt_file = self._testcase_sources_dir / "opt.py"
+
+        if not opt_file.exists():
+            return
+
+        # Load the opt.py file and call check_test_conditions
+
+        module_name = self.testcase_name + "_opt"
+
+        if module_name not in sys.modules:
+            spec = importlib.util.spec_from_file_location(module_name, opt_file)
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = module
+            spec.loader.exec_module(module)
+        else:
+            module = sys.modules[module_name]
+
+        if not hasattr(module, "check_test_conditions"):
+            return
+
+        return module.check_test_conditions(self._target_info)
 
     def _generate_gpr(self):
         """Generate a test.gpr file in the harness's working directory"""
