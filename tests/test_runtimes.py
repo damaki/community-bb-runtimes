@@ -58,6 +58,7 @@ def test_build(
             target_info=target_info,
         )
 
+        tc.check_test_conditions()
         tc.setup()
         p = tc.build()
         assert p.returncode == 0, "Build failed"
@@ -115,6 +116,7 @@ def test_execute_on_target(
             target_info=target_info,
         )
 
+        tc.check_test_conditions()
         tc.setup()
         p = tc.build()
         assert p.returncode == 0, "Build failed"
