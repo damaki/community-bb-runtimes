@@ -171,6 +171,34 @@ The test harnesses will take care of building each test, downloading & running
 it on the hardware (via GDB), and retrieving & checking the test program's
 output.
 
+### Testing on the nRF52840
+
+Running the tests on an RP2040 or RP2350 requires the following hardware:
+ * An nRF52840 Development Kit (nRF52840-DK)
+
+and the following software:
+ * the [J-Link Software Pack](https://www.segger.com/downloads/jlink/)
+   (these instructions were written using version 9.24a)
+
+Note that the nRF52840-DK comes with an on-board J-Link debugger, so a separate
+debugger is not required. Simply connect to the J-Link's micro-USB connector on
+the board.
+
+Next, start the J-Link GDB server in a terminal (you may need to tweak these
+settings for your environment):
+
+```sh
+JLinkGDBServerCLExe -USB -endian little -device nRF52840_xxAA -if SWD -speed auto -noir -LocalhostOnly -nologtofile -port 2331 -SWOPort 2332 -TelnetPort 2333
+```
+
+Now, you can configure and run the tests to tell it which hardware we're
+targeting (the nrf52840), and which ports to use to commuicate with the J-Link
+GDB server and telnet ports:
+
+```sh
+pytest . --target-board=nrf52840 --gdbserver-port=2331 --text-io-port=2333 -k test_execute_on_target
+```
+
 ## How the Tests Work
 
 Each test case is an Ada application that exercises some part of the runtime
