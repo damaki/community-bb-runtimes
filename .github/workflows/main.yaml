@@ -32,7 +32,7 @@ jobs:
 
       - name: Generate Runtimes
         shell: bash
-        run: ./generate-all.sh
+        run: ./generate-runtimes.sh
 
       - name: Build Runtimes
         shell: bash
