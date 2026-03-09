@@ -85,6 +85,7 @@ def test_execute_on_target(
     runtime_dir: str,
     crate_config_values: Dict[str, str],
     target_board,
+    target_if,
     gdbserver_port,
     text_io_port,
     working_dir: Optional[str],
@@ -140,12 +141,17 @@ def test_execute_on_target(
         p = tc.build()
         assert p.returncode == 0, "Build failed"
 
-        with JLinkInterface(
+        # Load the executable onto the target, run it, and check its output
+
+        driver = support.target_interface.driver_classes[target_if]
+
+        with driver(
             runtime_crate_dir=target_info.runtime_crate_dir,
+            executable_file=tc.executable_path,
             gdbserver_port=gdbserver_port,
             terminal_io_port=text_io_port,
         ) as target_if:
-            target_if.load(tc.executable_path)
+            target_if.load()
             target_if.reset()
             target_if.read_io(timeout=0.0)  # Clear input buffer
             target_if.run()
@@ -153,9 +159,9 @@ def test_execute_on_target(
             # Keep reading output until the TEST COMPLETE marker is found
 
             test_complete_marker = bytes("===TEST COMPLETE===", "ascii")
-            actual_output = target_if.read_io_until(test_complete_marker)
+            actual_output = target_if.read_io_until(test_complete_marker).decode('ascii')
 
             with open(testcase_dir / "test.out", "rb") as f:
-                expected_output = f.read()
+                expected_output = f.read().decode('ascii')
 
             assert actual_output == expected_output

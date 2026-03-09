@@ -1,6 +1,16 @@
 import pytest
+import support.target_interface
+
 
 def pytest_addoption(parser):
+    parser.addoption(
+        "--target-if",
+        action="store",
+        type=str,
+        choices=support.target_interface.driver_classes.keys(),
+        default="jlink-gdbserver",
+        help="Selects the target interface to use to communicate with the board",
+    )
     parser.addoption(
         "--gdbserver-port",
         action="store",
@@ -35,21 +45,31 @@ def pytest_addoption(parser):
         help="Don't delete working files after the test is completed",
     )
 
+
+@pytest.fixture
+def target_if(request):
+    return request.config.getoption("--target-if")
+
+
 @pytest.fixture
 def gdbserver_port(request):
     return request.config.getoption("--gdbserver-port")
+
 
 @pytest.fixture
 def text_io_port(request):
     return request.config.getoption("--text-io-port")
 
+
 @pytest.fixture
 def target_board(request):
     return request.config.getoption("--target-board")
 
+
 @pytest.fixture
 def working_dir(request):
     return request.config.getoption("--working-dir")
+
 
 @pytest.fixture
 def keep_build_files(request):
