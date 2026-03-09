@@ -47,19 +47,131 @@ For example:
 pytest . --working-dir=out --keep-build-files
 ```
 
-##  Running the Tests on Target Hardware
+## On-Target Testing
+
+> [!WARNING]
+> These instructions have been tested on Linux only. They should also work
+> on Windows and MacOS, but this hasn't been tested and some things may not work.
 
 By default, the tests only try compiling and linking programs against the
 runtimes; they do not run the resulting executables.
-
 If you want to also check that the executables run correctly on physical
-hardware, then you will need to configure pytest to tell it which target you
-want to test on, and which ports it should use to communicate with the board
-(via a debugger).
-The following sections provide instructions for running the tests on specific
-target boards.
+hardware, then you will also need:
+* a development board with the target you want to test on (e.g. Raspberry Pi Pico);
+* a debug probe connected to your target (e.g. J-link, ST-Link); and
+* software for your debug probe that can run a GDB server
+  (e.g. [J-Link software Pack](https://www.segger.com/downloads/jlink/),
+  [OpenOCD](https://openocd.org/),
+  [st-util](https://github.com/stlink-org/stlink)).
 
-### Testing on the RP2040 and RP2350
+The way on-target testing works is that the testsuite uses GDB to
+interface with the target via the debug probe's GDB server and uses it to send
+commands to download and run test programs on the target board, and check that
+the output from the program (via semihosting) matches the expected output.
+The specifics change depending on the debug probe and software used.
+
+Additional options to pass to pytest for on-target testing are:
+* `--target-board` configures the target that is being tested, e.g. `rp2040`
+* `--target-if` configures the method used to interface with the target. Available options:
+  * `jlink-gdbserver` (default): connect to the target via a J-Link GDB server
+  * `openocd-gdbserver`: connect to the target via OpenOCD's GDB server
+  * `st-util`: connect to the target using the st-util utility.
+* `--gdbserver-port`: configures the GDB server's port number to connect to.
+* `--text-io-port`: configures the port number to connect to for reading the
+  semihosting text output from the program running on the target.
+
+### On-Target Testing using J-Link
+
+Assuming you have a J-Link debug probe and are using the J-Link software pack,
+you can run the tests using the following steps:
+1. Connect the J-Link to the target board and ensure both are powered (see
+   the target-specific sections below for details).
+2. Launch the J-Link GDB server GUI (by running `JLinkGDBServerExe`),
+   select the appropriate target options for your target and debug probe, then
+   start the GDB server. Make a note of the GDB server port and the Telnet port
+   as you will need it in the next step.
+3. Run the tests:
+
+```sh
+pytest . \
+    --target-board=<target> \
+    --target-if=jlink-gdbserver \
+    --gdbserver-port=<gdb-port> \
+    --text-io-port<telnet-port>
+```
+
+Where:
+* `<target>` is the name of the runtime target you want to test (e.g. `rp2040`)
+* `<gdb-port>` is the J-Link GDB server port number
+* `<telnet-port>` is the J-Link GDB server telnet port number
+
+For example, to test on the RP2040 using a J-Link:
+
+```sh
+pytest . --target-board=rp2040 --target-if=jlink-gdbserver --gdbserver-port=2331 --text-io-port=2333
+```
+
+### On-Target Testing using OpenOCD
+
+> [!WARNING]
+> The OpenOCD interface seems to be quite unreliable, as OpenOCD tends to segfault
+> when the testsuite disconnects from the semihosting socket at the end of each
+> test. If you encounter segfaults with OpenOCD then you may need to run one
+> test at a time and restart OpenOCD after each test, or use a different GDB
+> server.
+
+1. Launch OpenOCD with the appropriate options for your debug interface and target,
+   and configure OpenOCD to enable semihosting and redirect it via TCP
+   For example, for the Nucleo-G474RE board (`stm32g4xx` target) with semihosting
+   output on port 4445:
+```sh
+openocd \
+    -f interface/stlink.cfg \
+    -f target/stm32g4x.cfg \
+    -c init \
+    -c "arm semihosting enable" \
+    -c "arm semihosting_redirect tcp 4445"
+```
+2. Run the tests:
+
+```sh
+pytest . \
+    --target-board=<target> \
+    --target-if=openocd-gdbserver \
+    --gdbserver-port=<gdb-port> \
+    --text-io-port<telnet-port>
+```
+
+Where:
+* `<target>` is the name of the runtime target you want to test (e.g. `rp2040`)
+* `<gdb-port>` is OpenOCD's GDB server port number (port 3333 by default)
+* `<telnet-port>` is OpenOCD's semihosting port number (e.g. 4445)
+
+For example, to test on the stm32g4xx (Nucleo-G474RE board):
+
+```sh
+pytest . --target-board=stm32g4xx --target-if=openocd-gdbserver --gdbserver-port=3333 --text-io-port=4445
+```
+
+### On-Target Testing using st-util
+
+For STM32 boards with an ST-Link debugger, the `st-util` tool from
+the open source [STLINK Tools](https://github.com/stlink-org/stlink) project
+can be used to connect to the board.
+
+Assuming that `st-util` is in your system PATH, you can run the testsuite
+directly (the testsuite will take care of launching `st-util`):
+```sh
+pytest . --target-board=<target> --target-if=st-util
+```
+
+For example, to test on the stm32g4xx (Nucleo-G474RE board):
+
+```sh
+pytest . --target-board=stm32g4xx --target-if=st-util
+```
+
+### Testing on the RP2040 and RP2350 with J-Link
 
 Running the tests on an RP2040 or RP2350 requires the following hardware:
  * A Raspberry Pi Pico board (for RP2040) or Raspberry Pi Pico 2 (for RP2350)
@@ -151,12 +263,20 @@ GDB server and telnet ports:
 
 **For RP2040:**
 ```sh
-pytest . --target-board=rp2040 --gdbserver-port=2331 --text-io-port=2333
+pytest . \
+    --target-board=rp2040 \
+    --target-if=jlink-gdbserver \
+    --gdbserver-port=2331 \
+    --text-io-port=2333
 ```
 
 **For RP2350:**
 ```sh
-pytest . --target-board=rp2350 --gdbserver-port=2331 --text-io-port=2333
+pytest . \
+    --target-board=rp2350 \
+    --target-if=jlink-gdbserver \
+    --gdbserver-port=2331 \
+    --text-io-port=2333
 ```
 
 Note that the above command will also run the "build only" tests. If you only
@@ -164,7 +284,12 @@ want to run the tests that execute on the target hardware, you can tell pytest
 to only run the `test_execute_on_target` tests:
 
 ```sh
-pytest . --target-board=rp2040 --gdbserver-port=2331 --text-io-port=2333 -k test_execute_on_target
+pytest . \
+    --target-board=rp2040 \
+    --target-if=jlink-gdbserver \
+    --gdbserver-port=2331 \
+    --text-io-port=2333
+    -k test_execute_on_target
 ```
 
 The test harnesses will take care of building each test, downloading & running
@@ -173,7 +298,7 @@ output.
 
 ### Testing on the nRF52840
 
-Running the tests on an RP2040 or RP2350 requires the following hardware:
+Running the tests on an nRF52840 requires the following hardware:
  * An nRF52840 Development Kit (nRF52840-DK)
 
 and the following software:
@@ -196,7 +321,29 @@ targeting (the nrf52840), and which ports to use to commuicate with the J-Link
 GDB server and telnet ports:
 
 ```sh
-pytest . --target-board=nrf52840 --gdbserver-port=2331 --text-io-port=2333 -k test_execute_on_target
+pytest . \
+    --target-board=nrf52840 \
+    --target-if=jlink-gdbserver \
+    --gdbserver-port=2331 \
+    --text-io-port=2333 \
+    -k test_execute_on_target
+```
+
+### Testing on the STM32G4xx
+
+Running the tests on an stm32g4xx requires the following hardware:
+ * A Nucleo-G474RE board
+
+And the following software installed and available on your system PATH:
+ * [STLINK Tools](https://github.com/stlink-org/stlink)
+
+Note that the Nucleo board comes with an on-board ST-Link debugger, so a separate
+debugger is not required. Simply connect to the USB connector on the board.
+
+Now you can run the tests:
+
+```sh
+pytest . --target-board=stm32g4xx --target-if=st-util -k test_execute_on_target
 ```
 
 ## How the Tests Work
