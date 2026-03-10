@@ -329,43 +329,74 @@ pytest . \
     -k test_execute_on_target
 ```
 
-### Testing on the STM32G4xx
+### Testing on STM32 Targets
 
-Running the tests on an stm32g4xx requires the following hardware:
- * A Nucleo-G474RE board
+Testing on STM32 is done on the following boards:
+| Target      | Board         |
+|-------------|---------------|
+| `stm32f0xx` | Nucleo-F072RB |
+| `stm32g0xx` | Nucleo-G0B1RE |
+| `stm32g4xx` | Nucleo-G474RE |
 
-And the following software installed and available on your system PATH:
+The following software is also required to be installed and available on your
+system PATH:
  * [STLINK Tools](https://github.com/stlink-org/stlink)
 
 Note that the Nucleo board comes with an on-board ST-Link debugger, so a separate
-debugger is not required. Simply connect to the USB connector on the board.
+debugger is not required. Simply connect to the ST-Link via a USB cable.
 
-Now you can run the tests:
+To run the tests, using the `stm32g0xx` target as an example:
 
 ```sh
-pytest . --target-board=stm32g4xx --target-if=st-util -k test_execute_on_target
+pytest . --target-board=stm32g0xx --target-if=st-util -k test_execute_on_target
 ```
 
-## How the Tests Work
+## Writing Tests
 
-Each test case is an Ada application that exercises some part of the runtime
-(e.g. text IO, interrupts, tasks, etc). The sources for each individual test
-case are stored in subdirectories under the `testcases` dir (one subdirectory
-per test case).
+Testcases are stored in the `testcases` directory, where each subdirectory is
+an individual test case.
 
-Pytest is used to orchestrate the tests, with parametrization to determine
-the list of runtimes that has been generated (by `generate-all.sh`) and should
-be tested against. Each test case is then built against each runtime using
-the default runtime crate configuration.
-So with _N_ test cases and _M_ runtimes, a total of _N_*_M_
-test configurations are executed to test every test case against every runtime.
+Each testcase subdirectory contains the sources needed for the test.
+The testcase contains at least the file `test.adb` which contains the main
+subprogram for the testcase, called `Test`. The testcase can also contain
+other source files, which must be in the same directory.
 
-The file `support/test_configs.py` also contains some additional test
-configurations to test runtimes with non-default runtime crate configuration
-values. For example, to test the RP2040 runtimes in a single-core configuration.
+The testcase must print the string `"===TEST COMPLETE==="` via `Ada.Text_IO`
+at the end of the test. This lets the test infrastructure know when the
+test has finished, and helps detect stuck/hung tests.
 
-A specific test configuration is tested by creating an Alire manifest
-(`alire.toml`) and GNAT Project file (`test.gpr`) in a temporary directory.
-The Alire manifest uses a pinned dependency for the specific runtime to be
-tested. The GPR file sets its `Source_Dirs` to point to the test case's sources.
-These are then used to compile the test.
+The testcase subdirectory must also contain a file called `test.out` which
+contains the expected text output from the test when it is executed.
+
+The testcase may optionally contain a Python script called `opt.py` which
+can contain some additional, optional functions to configure the test:
+
+| Function | Description |
+|----------|-------------|
+| `check_test_conditions` | Calls `pytest.skip()` if the test is not applicable for given runtime configuration. |
+| `local_crates` | Returns a list of crate names that are in the testcases's directory. These crates will be added to the build. |
+| `external_crates` | Returns a dictionary of crate names from the Alire index and the version to use. |
+| `crate_config_values` | Returns a dictionary of crate configuration variables to set, and the value to set. |
+
+```python
+import support.target_info
+import pytest
+
+def check_test_conditions(target_info: support.target_info.TargetInfo):
+    # This test only applies to the rp2040 target
+    if target_info.target != "rp2040":
+        pytest.skip("Test is only for the rp2040 target")
+
+
+def local_crates(target_info: support.target_info.TargetInfo) -> List[str]:
+    # The testcase directory has a crate called "my_crate" that is used for the test
+    return ["my_crate"]
+
+def external_crates(target_info: support.target_info.TargetInfo) -> Dict[str,str]:
+    # The testcases also uses the rp2040_hal crate from the Alire index
+    return {"rp2040_hal": "=2.7.0"}
+
+def crate_config_values(target_info: support.target_info.TargetInfo) -> Dict[str,Any]:
+    # The testcase needs to set the Use_Startup variable for the rp2040_hal crate
+    return {"rp2040_hal.Use_Startup": False}
+```
