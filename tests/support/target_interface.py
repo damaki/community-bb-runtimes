@@ -121,10 +121,10 @@ class GdbTargetInterface:
             self.terminal_socket.close()
         self.gdb.exit()
 
-    def load(self):
+    def load(self, timeout_sec=30.0):
         """Load the executable onto the target"""
         res = self._write(f"-target-download", read_response=False)
-        self._wait_for_result(timeout_sec=10.0)
+        self._wait_for_result(timeout_sec=timeout_sec)
 
     def run(self):
         """Run the program"""
@@ -199,9 +199,6 @@ class GdbTargetInterface:
             )
 
             now = time.time()
-
-            for r in responses:
-                print(f"Got response: {r}")
 
             for r in responses:
                 if r["type"] == "result":
