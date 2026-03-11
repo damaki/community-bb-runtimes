@@ -117,6 +117,21 @@ class TestHarness:
 
         return self._opt_module.crate_config_values(self._target_info)
 
+    def source_dirs(self) -> List[str]:
+        """
+        Call source_dirs() in the testcase's opt.py file, if it exists.
+
+        This returns a list of paths for additional source directories,
+        relative to the testcase directory
+        """
+        if self._opt_module is None:
+            return {}
+
+        if not hasattr(self._opt_module, "source_dirs"):
+            return {}
+
+        return self._opt_module.source_dirs(self._target_info)
+
     def _generate_gpr(self):
         """Generate a test.gpr file in the harness's working directory"""
         with open(self._testcase_working_dir / "test.gpr", "w") as f:
@@ -125,13 +140,16 @@ class TestHarness:
             else:
                 runtime_linker_switches = "()"
 
+            source_dirs = [self._testcase_sources_dir.absolute()]
+            source_dirs += [self._testcase_sources_dir / sd for sd in self.source_dirs()]
+
             f.write(
                 f"""
 with "config/test_config.gpr";
 with "runtime_build.gpr";
 {"with \"ravenscar_build.gpr\";" if self._target_info.has_libgnarl else ""}
 project Test is
-    for Source_Dirs use ("{self._testcase_sources_dir.absolute()}");
+    for Source_Dirs use ({", ".join(f'"{sd}"' for sd in source_dirs)});
     for Object_Dir use "obj";
     for Create_Missing_Dirs use "True";
     for Main use ("test.adb");
