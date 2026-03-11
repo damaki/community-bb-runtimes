@@ -378,6 +378,8 @@ can contain some additional, optional functions to configure the test:
 | `external_crates` | Returns a dictionary of crate names from the Alire index and the version to use. |
 | `crate_config_values` | Returns a dictionary of crate configuration variables to set, and the value to set. |
 
+Here is an example `opt.py` file:
+
 ```python
 import support.target_info
 import pytest
@@ -400,3 +402,8 @@ def crate_config_values(target_info: support.target_info.TargetInfo) -> Dict[str
     # The testcase needs to set the Use_Startup variable for the rp2040_hal crate
     return {"rp2040_hal.Use_Startup": False}
 ```
+
+The test infrastructure creates a temporary directory for each testcase to
+use as a working directory. This working directory will be used to store a
+generated `alire.toml` and `test.gpr` file to build the testcase, along with
+the build artifacts.
