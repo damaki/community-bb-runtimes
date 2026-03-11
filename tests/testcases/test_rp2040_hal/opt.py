@@ -5,7 +5,7 @@ import pathlib
 
 def check_test_conditions(target_info: support.target_info.TargetInfo):
     if target_info.target != "rp2040":
-        pytest.skip(f"Test is not applicable for target '{target_info.target}'")
+        pytest.skip(f"Test requires target 'rp2040'")
 
 
 def external_crates(target_info: support.target_info.TargetInfo):
