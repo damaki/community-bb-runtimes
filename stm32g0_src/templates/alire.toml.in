@@ -97,7 +97,7 @@ maintainers = ["Daniel King <damaki.gh@gmail.com>"]
 maintainers-logins = ["damaki"]
 licenses = "GPL-3.0-or-later WITH GCC-exception-3.1"
 tags = ["embedded", "runtime", "stm32g0"]
-website = "https://github.com/damaki/stm32g0xx-runtimes"
+website = "https://github.com/damaki/community-bb-runtimes"
 
 project-files = $(project_files_list)
 
