@@ -17,15 +17,15 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           submodules: true
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - uses: alire-project/setup-alire@v4
+      - uses: alire-project/setup-alire@v5
         with:
           version: 2.1.0
           toolchain: 'gnat_arm_elf gprbuild'
@@ -51,11 +51,6 @@ jobs:
       # behave the same at this point, and we're not interested in checking
       # for differences in those toolchains here.
 
-      - uses: actions/setup-python@v4
-        if: ${{ matrix.os != 'windows-latest' }}
-        with:
-          python-version: "3.12"
-
       - name: Install Test Dependencies
         if: ${{ matrix.os != 'windows-latest' }}
         run: |
@@ -68,7 +63,7 @@ jobs:
           pytest . -v --junit-xml=reports/runtime-tests.xml
 
       - name: Test Report
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@v2.6.0
         if: ${{ !cancelled() && (matrix.os != 'windows-latest') }} # run this step even if previous step failed
         with:
           name: Runtime Tests
