@@ -58,6 +58,7 @@ all_targets=(\
   "nrf52832" \
   "nrf52833" \
   "nrf52840" \
+  "nrf54l" \
   "stm32f0xx" \
   "stm32g0xx" \
   "stm32g4xx" \

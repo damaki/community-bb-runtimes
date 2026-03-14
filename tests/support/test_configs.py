@@ -27,6 +27,28 @@ additional_test_configs = [
         "profiles": ["light_tasking", "embedded"],
         "configuration.values": [{"Max_CPUs": 1}],
     },
+    {  # Test building with all devices in the nRF54L family
+        "targets": ["nrf54l"],
+        "profiles": ["light", "light_tasking", "embedded"],
+        "configuration.values": [
+            {"Device": "nRF54L05"},
+            {"Device": "nRF54L10"},
+            {"Device": "nRF54L15"},
+            {"Device": "nRF54LM20A"},
+            {"Device": "nRF54LM20B"},
+            {"Device": "nRF54LS05A"},
+            {"Device": "nRF54LS05B"},
+            {"Device": "nRF54LV10A"},
+        ],
+    },
+    {  # Test a different GRTC configuration on the nRF54L
+        "targets": ["nrf54l"],
+        "profiles": ["light_tasking", "embedded"],
+        "configuration.values": [
+            {"Time_Base_GRTC_IRQ": 1},
+            {"Time_Base_GRTC_CCn": 5},
+        ],
+    },
 ]
 
 REPO_ROOT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
