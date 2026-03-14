@@ -12,7 +12,6 @@ import build_rts
 from support import add_source_search_path
 
 
-
 class ArmV7MArch_Patched(arm.cortexm.ArmV7MArch):
     def __init__(self):
         super(ArmV7MArch_Patched, self).__init__()
@@ -164,10 +163,11 @@ class RP2350(arm.cortexm.CortexM33F):
             "src/s-bcpcst__armvXm.ads",
         )
 
+
 class NRF52(arm.cortexm.ArmV7MTarget):
     @property
     def name(self):
-        return 'nRF52'
+        return "nRF52"
 
     @property
     def parent(self):
@@ -175,7 +175,7 @@ class NRF52(arm.cortexm.ArmV7MTarget):
 
     @property
     def loaders(self):
-        return ('ROM', )
+        return ("ROM",)
 
     @property
     def has_fpu(self):
@@ -187,34 +187,44 @@ class NRF52(arm.cortexm.ArmV7MTarget):
         # 4-bit interrupt priorities, but the nRF52 only supports
         # 3-bit interrupt priorities. This requires different
         # definitions for Priority and Interrupt_Priority in System.
-        return {'light': 'system-xi-arm.ads',
-                'light-tasking': 'nrf52_src/system-xi-nrf52-sfp.ads',
-                'embedded': 'nrf52_src/system-xi-nrf52-full.ads'}
+        return {
+            "light": "system-xi-arm.ads",
+            "light-tasking": "nrf52_src/system-xi-nrf52-sfp.ads",
+            "embedded": "nrf52_src/system-xi-nrf52-full.ads",
+        }
 
     @property
     def compiler_switches(self):
         # The required compiler switches
-        return ('-mlittle-endian', '-mthumb', '-mfloat-abi=hard',
-                '-mfpu=fpv4-sp-d16', '-mcpu=cortex-m4')
+        return (
+            "-mlittle-endian",
+            "-mthumb",
+            "-mfloat-abi=hard",
+            "-mfpu=fpv4-sp-d16",
+            "-mcpu=cortex-m4",
+        )
 
     def __init__(self):
         super(NRF52, self).__init__()
 
-        self.add_linker_script('nrf52_src/common-ROM.ld', loader='ROM')
-        self.add_linker_script('nrf52_src/memory-map_%s.ld' % self.name,
-                               'memory-map.ld')
+        self.add_linker_script("nrf52_src/common-ROM.ld", loader="ROM")
+        self.add_linker_script(
+            "nrf52_src/memory-map_%s.ld" % self.name, "memory-map.ld"
+        )
 
         self.add_gnat_sources(
             "nrf52_src/s-bbbopa.ads",
-            'nrf52_src/s-bbmcpa.ads',
-            'nrf52_src/start-common.S',
-            'nrf52_src/start-rom.S',
-            'nrf52_src/setup_board.ads')
+            "nrf52_src/s-bbmcpa.ads",
+            "nrf52_src/start-common.S",
+            "nrf52_src/start-rom.S",
+            "nrf52_src/setup_board.ads",
+        )
 
         self.add_gnarl_sources(
-            'nrf52_src/s-bbpara.ads',
-            'nrf52_src/s-bbbosu.adb',
-            'src/s-bcpcst__pendsv.adb')
+            "nrf52_src/s-bbpara.ads",
+            "nrf52_src/s-bbbosu.adb",
+            "src/s-bcpcst__pendsv.adb",
+        )
 
 
 class NRF52833(NRF52):
@@ -253,7 +263,7 @@ class NRF52833(NRF52):
 class NRF52840(NRF52):
     @property
     def name(self):
-        return 'nrf52840'
+        return "nrf52840"
 
     @property
     def use_semihosting_io(self):
@@ -263,25 +273,26 @@ class NRF52840(NRF52):
         super(NRF52840, self).__init__()
 
         self.add_gnat_sources(
-            'nrf52_src/nrf52840/setup_board.adb',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52.ads',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52-ccm.ads',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52-clock.ads',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52-ficr.ads',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52-gpio.ads',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52-uicr.ads',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52-nvmc.ads',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52-rtc.ads',
-            'nrf52_src/nrf52840/svd/interfaces-nrf52-temp.ads')
+            "nrf52_src/nrf52840/setup_board.adb",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52.ads",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52-ccm.ads",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52-clock.ads",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52-ficr.ads",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52-gpio.ads",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52-uicr.ads",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52-nvmc.ads",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52-rtc.ads",
+            "nrf52_src/nrf52840/svd/interfaces-nrf52-temp.ads",
+        )
         self.add_gnarl_sources(
-            'nrf52_src/nrf52840/svd/handler.S',
-            'nrf52_src/nrf52840/svd/a-intnam.ads')
+            "nrf52_src/nrf52840/svd/handler.S", "nrf52_src/nrf52840/svd/a-intnam.ads"
+        )
 
 
 class NRF52832(NRF52):
     @property
     def name(self):
-        return 'nrf52832'
+        return "nrf52832"
 
     @property
     def use_semihosting_io(self):
@@ -291,19 +302,98 @@ class NRF52832(NRF52):
         super(NRF52832, self).__init__()
 
         self.add_gnat_sources(
-            'nrf52_src/nrf52832/setup_board.adb',
-            'nrf52_src/nrf52832/svd/interfaces-nrf52.ads',
-            'nrf52_src/nrf52832/svd/interfaces-nrf52-clock.ads',
-            'nrf52_src/nrf52832/svd/interfaces-nrf52-ficr.ads',
-            'nrf52_src/nrf52832/svd/interfaces-nrf52-gpio.ads',
-            'nrf52_src/nrf52832/svd/interfaces-nrf52-uicr.ads',
-            'nrf52_src/nrf52832/svd/interfaces-nrf52-nvmc.ads',
-            'nrf52_src/nrf52832/svd/interfaces-nrf52-rtc.ads',
-            'nrf52_src/nrf52832/svd/interfaces-nrf52-temp.ads')
+            "nrf52_src/nrf52832/setup_board.adb",
+            "nrf52_src/nrf52832/svd/interfaces-nrf52.ads",
+            "nrf52_src/nrf52832/svd/interfaces-nrf52-clock.ads",
+            "nrf52_src/nrf52832/svd/interfaces-nrf52-ficr.ads",
+            "nrf52_src/nrf52832/svd/interfaces-nrf52-gpio.ads",
+            "nrf52_src/nrf52832/svd/interfaces-nrf52-uicr.ads",
+            "nrf52_src/nrf52832/svd/interfaces-nrf52-nvmc.ads",
+            "nrf52_src/nrf52832/svd/interfaces-nrf52-rtc.ads",
+            "nrf52_src/nrf52832/svd/interfaces-nrf52-temp.ads",
+        )
 
         self.add_gnarl_sources(
-            'nrf52_src/nrf52832/svd/handler.S',
-            'nrf52_src/nrf52832/svd/a-intnam.ads')
+            "nrf52_src/nrf52832/svd/handler.S", "nrf52_src/nrf52832/svd/a-intnam.ads"
+        )
+
+
+class NRF54L(arm.cortexm.CortexM33F):
+    @property
+    def name(self):
+        return "nrf54l"
+
+    @property
+    def parent(self):
+        None
+
+    @property
+    def loaders(self):
+        return ("ROM",)
+
+    @property
+    def has_fpu(self):
+        return True
+
+    @property
+    def has_timer_64(self):
+        return True
+
+    @property
+    def use_semihosting_io(self):
+        return True
+
+    @property
+    def system_ads(self):
+        return {
+            "light": "system-xi-arm.ads",
+            "light-tasking": "nrf54l_src/system-xi-nrf54-sfp.ads",
+            "embedded": "nrf54l_src/system-xi-nrf54-full.ads",
+        }
+
+    def __init__(self):
+        super(NRF54L, self).__init__()
+
+        self.add_gnat_sources(
+            "arm/src/breakpoint_handler-cortexm.S",
+            "nrf54l_src/s-bbbopa.ads",
+            "nrf54l_src/s-bbmcpa.ads",
+            "nrf54l_src/setup_board.adb",
+            "nrf54l_src/setup_board.ads",
+            "nrf54l_src/start-rom.S",
+            "nrf54l_src/svd/i-nrf54-cache.ads",
+            "nrf54l_src/svd/i-nrf54-clock.ads",
+            "nrf54l_src/svd/i-nrf54-ficr.ads",
+            "nrf54l_src/svd/i-nrf54-glitchdet.ads",
+            "nrf54l_src/svd/i-nrf54-gpio.ads",
+            "nrf54l_src/svd/i-nrf54-gpiohspadctrl.ads",
+            "nrf54l_src/svd/i-nrf54-grtc.ads",
+            "nrf54l_src/svd/i-nrf54-kmu.ads",
+            "nrf54l_src/svd/i-nrf54-oscillators.ads",
+            "nrf54l_src/svd/i-nrf54-tad.ads",
+            "nrf54l_src/svd/i-nrf54.ads",
+            "src/s-macres__cortexm3.adb",
+        )
+
+        self.add_gnarl_sources(
+            "nrf54l_src/s-bbbosu.adb",
+            "nrf54l_src/s-bbcppr.adb",
+            "nrf54l_src/s-bbpara.ads",
+            "nrf54l_src/svd/a-intnam-nRF54L05.ads",
+            "nrf54l_src/svd/a-intnam-nRF54L10.ads",
+            "nrf54l_src/svd/a-intnam-nRF54L15.ads",
+            "nrf54l_src/svd/a-intnam-nRF54LM20A.ads",
+            "nrf54l_src/svd/a-intnam-nRF54LM20B.ads",
+            "nrf54l_src/svd/a-intnam-nRF54LS05A.ads",
+            "nrf54l_src/svd/a-intnam-nRF54LS05B.ads",
+            "nrf54l_src/svd/a-intnam-nRF54LV10A.ads",
+            "nrf54l_src/svd/handler.S",
+            "src/s-bbcppr__old.ads",
+            "src/s-bbcpsp__cortexm.ads",
+            "src/s-bbsumu__generic.adb",
+            "src/s-bcpcst__armvXm.ads",
+            "src/s-bcpcst__pendsv.adb",
+        )
 
 
 class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
@@ -508,6 +598,8 @@ def build_configs(target):
         return NRF52833()
     elif target == "nrf52840":
         return NRF52840()
+    elif target == "nrf54l":
+        return NRF54L()
     elif target == "stm32f0xx":
         return Stm32F0()
     elif target == "stm32g0xx":
@@ -517,11 +609,13 @@ def build_configs(target):
     else:
         assert False, "unexpected target: %s" % target
 
+
 def patch_bb_runtimes():
     """Patch some parts of bb-runtimes to use our own targets and data"""
     add_source_search_path(os.path.dirname(__file__))
 
     build_rts.build_configs = build_configs
+
 
 if __name__ == "__main__":
     patch_bb_runtimes()

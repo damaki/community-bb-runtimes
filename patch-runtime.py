@@ -28,6 +28,7 @@ target_src_dirs = {
     "nrf52832": "nrf52_src",
     "nrf52833": "nrf52_src",
     "nrf52840": "nrf52_src",
+    "nrf54l": "nrf54l_src",
     "stm32f0xx": "stm32f0_src",
     "stm32g0xx": "stm32g0_src",
     "stm32g4xx": "stm32g4_src",
