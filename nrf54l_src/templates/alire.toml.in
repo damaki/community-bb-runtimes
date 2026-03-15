@@ -1,5 +1,5 @@
 name = "$(profile_underscored)_$(target)"
-description = "$(profile) runtime for the $(pretty_target) SoC"
+description = "$(profile) runtime for the nRF54L series"
 version = "$(version)"
 
 long-description = """
@@ -13,15 +13,25 @@ First edit your `alire.toml` file and add the following elements:
    ```
 
 Then edit your project file to add the following elements:
- - "with" the run-time project file. With this, gprbuild will compile the run-time before your application
+ - "with" the run-time project files:
    ```ada
-   with "$(runtime_proj_prefix)_build.gpr";
+$(project_file_withs)
    ```
  - Specify the `Target` and `Runtime` attributes:
    ```ada
-      for Target use $(runtime_proj_prefix)_build'Target;
-      for Runtime ("Ada") use $(runtime_proj_prefix)_build'Runtime ("Ada");
+      for Target use Runtime_Build'Target;
+      for Runtime ("Ada") use Runtime_Build'Runtime ("Ada");
    ```
+ - specify the `Linker` switches:
+   ```ada
+   package Linker is
+     for Switches ("Ada") use Runtime_Build.Linker_Switches & ("-Wl,--gc-sections");
+   end Linker;
+   ```
+
+Note that the linker switch `-Wl,--gc-sections` is optional, but its use is
+recommended since it reduces the final size of the executable by removing
+unused code.
 """
 
 authors = ["AdaCore", "Daniel King"]

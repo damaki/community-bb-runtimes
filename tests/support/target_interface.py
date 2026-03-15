@@ -183,7 +183,12 @@ class GdbTargetInterface:
         read_response=True,
     ):
         """Send a command to GDB"""
-        return self.gdb.write(cmd, timeout_sec=timeout_sec, read_response=read_response)
+        print(f"GDB <- {cmd}")
+        responses = self.gdb.write(cmd, timeout_sec=timeout_sec, read_response=read_response)
+        if read_response:
+            for r in responses:
+                print(f"GDB -> {r}")
+        return responses
 
     def _wait_for_result(
         self,
@@ -199,6 +204,9 @@ class GdbTargetInterface:
             )
 
             now = time.time()
+
+            for r in responses:
+                print(f"GDB -> {r}")
 
             for r in responses:
                 if r["type"] == "result":
