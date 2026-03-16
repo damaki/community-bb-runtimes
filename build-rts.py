@@ -370,6 +370,7 @@ class NRF54L(arm.cortexm.CortexM33F):
             "nrf54l_src/svd/i-nrf54-grtc.ads",
             "nrf54l_src/svd/i-nrf54-kmu.ads",
             "nrf54l_src/svd/i-nrf54-oscillators.ads",
+            "nrf54l_src/svd/i-nrf54-spu.ads",
             "nrf54l_src/svd/i-nrf54-tad.ads",
             "nrf54l_src/svd/i-nrf54.ads",
             "src/s-macres__cortexm3.adb",

@@ -43,6 +43,7 @@ with Interfaces.NRF54;             use Interfaces.NRF54;
 with Interfaces.NRF54.GRTC;        use Interfaces.NRF54.GRTC;
 with Interfaces.NRF54.CLOCK;       use Interfaces.NRF54.CLOCK;
 with Interfaces.NRF54.OSCILLATORS; use Interfaces.NRF54.OSCILLATORS;
+with Interfaces.NRF54.SPU;         use Interfaces.NRF54.SPU;
 
 with NRF54_Runtime_Config; use NRF54_Runtime_Config;
 
@@ -183,8 +184,41 @@ package body System.BB.Board_Support is
    ----------------------
 
    procedure Initialize_Board is
+      Is_Secure : constant Boolean :=
+        NRF54_Runtime_Config.Security_Level = Secure;
+
    begin
       Disable_Interrupts;
+
+      if Is_Secure then
+
+         --  Prevent non-secure access to the GRTC resources that are reserved
+         --  for use by the secure runtime.
+
+         declare
+            SPU_FEATURE_GRTC_CC : Interfaces.NRF54.SPU.CC_GRTC_Register
+            with
+              Volatile_Full_Access,
+              Import,
+              Address =>
+                GLOBAL_SPU20_S_Periph.FEATURE.GRTC.CC_0'Address
+                + (4 * NRF54_Runtime_Config.Time_Base_GRTC_CCn);
+
+            SPU_FEATURE_GRTC_INTERRUPT : Interfaces.NRF54.SPU.CC_GRTC_Register
+            with
+              Volatile_Full_Access,
+              Import,
+              Address =>
+                GLOBAL_SPU20_S_Periph.FEATURE.GRTC.INTERRUPT_0'Address
+                + (4 * NRF54_Runtime_Config.Time_Base_GRTC_IRQ);
+         begin
+            SPU_FEATURE_GRTC_CC :=
+              (SECATTR => Secure, LOCK => Locked, others => <>);
+
+            SPU_FEATURE_GRTC_INTERRUPT :=
+              (SECATTR => Secure, LOCK => Locked, others => <>);
+         end;
+      end if;
 
       --  Start LFCLK
       --  We assume that the LFCLK source (Xtal, Rc, or Synth) has already been
