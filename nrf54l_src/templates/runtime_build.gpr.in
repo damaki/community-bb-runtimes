@@ -46,6 +46,7 @@ project Runtime_Build is
      for Spec ("Interfaces.NRF54.GRTC")          use "i-nrf54-grtc.ads";
      for Spec ("Interfaces.NRF54.KMU")           use "i-nrf54-kmu.ads";
      for Spec ("Interfaces.NRF54.OSCILLATORS")   use "i-nrf54-oscillators.ads";
+     for Spec ("Interfaces.NRF54.SPU")           use "i-nrf54-spu.ads";
      for Spec ("Interfaces.NRF54.TAD")           use "i-nrf54-tad.ads";
   end Naming;
 
