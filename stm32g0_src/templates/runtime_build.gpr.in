@@ -98,6 +98,9 @@ project Runtime_Build is
 
   package Naming is
      for Spec_Suffix ("Asm_CPP") use ".inc";
+     for Spec ("Interfaces.STM32")       use "i-stm32.ads";
+     for Spec ("Interfaces.STM32.FLASH") use "i-stm32-flash.ads";
+     for Spec ("Interfaces.STM32.RCC")   use "i-stm32-rcc.ads";
   end Naming;
 
   package Compiler is
