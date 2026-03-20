@@ -98,11 +98,18 @@ def gen_templates_from_manifest(
                     "excluded_profiles" not in template_info
                     or profile not in template_info["excluded_profiles"]
                 ):
-                    source = pathlib.Path(template_info["source"])
-                    target = pathlib.Path(template_info["target"])
+                    src = template_info["src"]
+                    dst = template_info["dst"]
+
+                    for k,v in template_values.items():
+                        src = src.replace(f"$({k})", v)
+
+                    for k,v in template_values.items():
+                        dst = dst.replace(f"$({k})", v)
+
                     gen_from_template(
-                        template_file=templates_dir / source,
-                        out_file=runtime_dir / target,
+                        template_file=templates_dir / pathlib.Path(src),
+                        out_file=runtime_dir / pathlib.Path(dst),
                         template_values=template_values,
                     )
 
