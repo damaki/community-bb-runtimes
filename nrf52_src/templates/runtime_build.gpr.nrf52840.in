@@ -18,6 +18,15 @@ project Runtime_Build is
 
   package Naming is
      for Spec_Suffix ("Asm_CPP") use ".inc";
+      for Spec ("Interfaces.NRF52")       use "i-nrf52.ads";
+      for Spec ("Interfaces.NRF52.CCM")   use "i-nrf52-ccm.ads";
+      for Spec ("Interfaces.NRF52.CLOCK") use "i-nrf52-clock.ads";
+      for Spec ("Interfaces.NRF52.FICR")  use "i-nrf52-ficr.ads";
+      for Spec ("Interfaces.NRF52.GPIO")  use "i-nrf52-gpio.ads";
+      for Spec ("Interfaces.NRF52.NVMC")  use "i-nrf52-nvmc.ads";
+      for Spec ("Interfaces.NRF52.RTC")   use "i-nrf52-rtc.ads";
+      for Spec ("Interfaces.NRF52.TEMP")  use "i-nrf52-temp.ads";
+      for Spec ("Interfaces.NRF52.UICR")  use "i-nrf52-uicr.ads";
   end Naming;
 
   package Compiler is

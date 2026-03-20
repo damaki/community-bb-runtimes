@@ -7,7 +7,7 @@ src = "nrf52_runtime_config.ads.in"
 dst = "gnat_user/nrf52_runtime_config.ads"
 
 [[template]]
-src = "runtime_build.gpr.in"
+src = "runtime_build.gpr.$(target).in"
 dst = "runtime_build.gpr"
 
 [[template]]

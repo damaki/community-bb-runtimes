@@ -241,16 +241,16 @@ class NRF52833(NRF52):
 
         self.add_gnat_sources(
             "nrf52_src/nrf52833/setup_board.adb",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-clock.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-ficr.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-gpio.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-uicr.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-nvmc.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-rtc.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-uart.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-temp.ads",
-            "nrf52_src/nrf52833/svd/interfaces-nrf52-approtect.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-clock.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-ficr.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-gpio.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-uicr.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-nvmc.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-rtc.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-uart.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-temp.ads",
+            "nrf52_src/nrf52833/svd/i-nrf52-approtect.ads",
         )
 
         # ravenscar support
@@ -274,15 +274,15 @@ class NRF52840(NRF52):
 
         self.add_gnat_sources(
             "nrf52_src/nrf52840/setup_board.adb",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52.ads",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52-ccm.ads",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52-clock.ads",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52-ficr.ads",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52-gpio.ads",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52-uicr.ads",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52-nvmc.ads",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52-rtc.ads",
-            "nrf52_src/nrf52840/svd/interfaces-nrf52-temp.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52-ccm.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52-clock.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52-ficr.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52-gpio.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52-uicr.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52-nvmc.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52-rtc.ads",
+            "nrf52_src/nrf52840/svd/i-nrf52-temp.ads",
         )
         self.add_gnarl_sources(
             "nrf52_src/nrf52840/svd/handler.S", "nrf52_src/nrf52840/svd/a-intnam.ads"
@@ -303,14 +303,14 @@ class NRF52832(NRF52):
 
         self.add_gnat_sources(
             "nrf52_src/nrf52832/setup_board.adb",
-            "nrf52_src/nrf52832/svd/interfaces-nrf52.ads",
-            "nrf52_src/nrf52832/svd/interfaces-nrf52-clock.ads",
-            "nrf52_src/nrf52832/svd/interfaces-nrf52-ficr.ads",
-            "nrf52_src/nrf52832/svd/interfaces-nrf52-gpio.ads",
-            "nrf52_src/nrf52832/svd/interfaces-nrf52-uicr.ads",
-            "nrf52_src/nrf52832/svd/interfaces-nrf52-nvmc.ads",
-            "nrf52_src/nrf52832/svd/interfaces-nrf52-rtc.ads",
-            "nrf52_src/nrf52832/svd/interfaces-nrf52-temp.ads",
+            "nrf52_src/nrf52832/svd/i-nrf52.ads",
+            "nrf52_src/nrf52832/svd/i-nrf52-clock.ads",
+            "nrf52_src/nrf52832/svd/i-nrf52-ficr.ads",
+            "nrf52_src/nrf52832/svd/i-nrf52-gpio.ads",
+            "nrf52_src/nrf52832/svd/i-nrf52-uicr.ads",
+            "nrf52_src/nrf52832/svd/i-nrf52-nvmc.ads",
+            "nrf52_src/nrf52832/svd/i-nrf52-rtc.ads",
+            "nrf52_src/nrf52832/svd/i-nrf52-temp.ads",
         )
 
         self.add_gnarl_sources(
