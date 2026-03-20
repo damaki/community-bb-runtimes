@@ -570,10 +570,10 @@ class Stm32G4(arm.cortexm.CortexM4F):
             "stm32g4_src/s-bbbopa.ads",
             "stm32g4_src/s-bbmcpa.ads",
             "stm32g4_src/svd/handler.S",
-            "stm32g4_src/svd/interfaces-stm32.ads",
-            "stm32g4_src/svd/interfaces-stm32-flash.ads",
-            "stm32g4_src/svd/interfaces-stm32-pwr.ads",
-            "stm32g4_src/svd/interfaces-stm32-rcc.ads",
+            "stm32g4_src/svd/i-stm32.ads",
+            "stm32g4_src/svd/i-stm32-flash.ads",
+            "stm32g4_src/svd/i-stm32-pwr.ads",
+            "stm32g4_src/svd/i-stm32-rcc.ads",
         )
 
         self.add_gnarl_sources(
