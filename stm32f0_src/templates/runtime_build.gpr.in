@@ -107,51 +107,51 @@ project Runtime_Build is
   case MCU_Sub_Family_Minor is
     when "0" =>
       Excluded_Sources := Excluded_Sources &
-        ("interfaces-stm32_1.ads",
-         "interfaces-stm32_2.ads",
-         "interfaces-stm32_8.ads",
-         "interfaces-stm32-flash_1.ads",
-         "interfaces-stm32-flash_2.ads",
-         "interfaces-stm32-flash_8.ads",
-         "interfaces-stm32-rcc_1.ads",
-         "interfaces-stm32-rcc_2.ads",
-         "interfaces-stm32-rcc_8.ads");
+        ("i-stm32_1.ads",
+         "i-stm32_2.ads",
+         "i-stm32_8.ads",
+         "i-stm32-flash_1.ads",
+         "i-stm32-flash_2.ads",
+         "i-stm32-flash_8.ads",
+         "i-stm32-rcc_1.ads",
+         "i-stm32-rcc_2.ads",
+         "i-stm32-rcc_8.ads");
 
     when "1" =>
       Excluded_Sources := Excluded_Sources &
-        ("interfaces-stm32_0.ads",
-         "interfaces-stm32_2.ads",
-         "interfaces-stm32_8.ads",
-         "interfaces-stm32-flash_0.ads",
-         "interfaces-stm32-flash_2.ads",
-         "interfaces-stm32-flash_8.ads",
-         "interfaces-stm32-rcc_0.ads",
-         "interfaces-stm32-rcc_2.ads",
-         "interfaces-stm32-rcc_8.ads");
+        ("i-stm32_0.ads",
+         "i-stm32_2.ads",
+         "i-stm32_8.ads",
+         "i-stm32-flash_0.ads",
+         "i-stm32-flash_2.ads",
+         "i-stm32-flash_8.ads",
+         "i-stm32-rcc_0.ads",
+         "i-stm32-rcc_2.ads",
+         "i-stm32-rcc_8.ads");
 
     when "2" =>
       Excluded_Sources := Excluded_Sources &
-        ("interfaces-stm32_0.ads",
-         "interfaces-stm32_1.ads",
-         "interfaces-stm32_8.ads",
-         "interfaces-stm32-flash_0.ads",
-         "interfaces-stm32-flash_1.ads",
-         "interfaces-stm32-flash_8.ads",
-         "interfaces-stm32-rcc_0.ads",
-         "interfaces-stm32-rcc_1.ads",
-         "interfaces-stm32-rcc_8.ads");
+        ("i-stm32_0.ads",
+         "i-stm32_1.ads",
+         "i-stm32_8.ads",
+         "i-stm32-flash_0.ads",
+         "i-stm32-flash_1.ads",
+         "i-stm32-flash_8.ads",
+         "i-stm32-rcc_0.ads",
+         "i-stm32-rcc_1.ads",
+         "i-stm32-rcc_8.ads");
 
     when others =>
       Excluded_Sources := Excluded_Sources &
-        ("interfaces-stm32_0.ads",
-         "interfaces-stm32_1.ads",
-         "interfaces-stm32_2.ads",
-         "interfaces-stm32-flash_0.ads",
-         "interfaces-stm32-flash_1.ads",
-         "interfaces-stm32-flash_2.ads",
-         "interfaces-stm32-rcc_0.ads",
-         "interfaces-stm32-rcc_1.ads",
-         "interfaces-stm32-rcc_2.ads");
+        ("i-stm32_0.ads",
+         "i-stm32_1.ads",
+         "i-stm32_2.ads",
+         "i-stm32-flash_0.ads",
+         "i-stm32-flash_1.ads",
+         "i-stm32-flash_2.ads",
+         "i-stm32-rcc_0.ads",
+         "i-stm32-rcc_1.ads",
+         "i-stm32-rcc_2.ads");
   end case;
 
   for Excluded_Source_Files use Excluded_Sources;
@@ -177,10 +177,10 @@ project Runtime_Build is
   package Naming is
      for Spec_Suffix ("Asm_CPP") use ".inc";
 
-     for Spec ("Interfaces.STM32")         use "interfaces-stm32_"       & MCU_Sub_Family_Minor & ".ads";
-     for Spec ("Interfaces.STM32.FLASH")   use "interfaces-stm32-flash_" & MCU_Sub_Family_Minor & ".ads";
-     for Spec ("Interfaces.STM32.RCC")     use "interfaces-stm32-rcc_"   & MCU_Sub_Family_Minor & ".ads";
-     for Spec ("System.BB.MCU_Parameters") use "s-bbmcpa-"               & Clock_Tree_Kind      & ".ads";
+     for Spec ("Interfaces.STM32")         use "i-stm32_"       & MCU_Sub_Family_Minor & ".ads";
+     for Spec ("Interfaces.STM32.FLASH")   use "i-stm32-flash_" & MCU_Sub_Family_Minor & ".ads";
+     for Spec ("Interfaces.STM32.RCC")     use "i-stm32-rcc_"   & MCU_Sub_Family_Minor & ".ads";
+     for Spec ("System.BB.MCU_Parameters") use "s-bbmcpa-"      & Clock_Tree_Kind      & ".ads";
   end Naming;
 
   package Compiler is
