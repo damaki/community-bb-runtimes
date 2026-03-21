@@ -3,12 +3,12 @@ src = "alire.toml.in"
 dst = "alire.toml"
 
 [[template]]
-src = "nrf54_runtime_config.ads.in"
-dst = "gnat_user/nrf54_runtime_config.ads"
+src = "nrf54_app_runtime_config.ads.in"
+dst = "gnat_user/nrf54_app_runtime_config.ads"
 
 [[template]]
-src = "nrf54_runtime_config.h.in"
-dst = "gnat_user/nrf54_runtime_config.h"
+src = "nrf54_app_runtime_config.h.in"
+dst = "gnat_user/nrf54_app_runtime_config.h"
 
 [[template]]
 src = "runtime_build.gpr.in"

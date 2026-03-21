@@ -1,6 +1,0 @@
-#ifndef NRF54_RUNTIME_CONFIG_H
-#define NRF54_RUNTIME_CONFIG_H
-
-#include "$(profile_underscored)_$(target)_config.h"
-
-#endif /* NRF54_RUNTIME_CONFIG_H */

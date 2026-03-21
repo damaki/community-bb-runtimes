@@ -26,7 +26,7 @@
 #                                                                           #
 #############################################################################
 
-#include "nrf54_runtime_config.h"
+#include "nrf54_app_runtime_config.h"
 
 	.syntax unified
 	.cpu cortex-m33
