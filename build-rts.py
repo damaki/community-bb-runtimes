@@ -318,10 +318,10 @@ class NRF52832(NRF52):
         )
 
 
-class NRF54L(arm.cortexm.CortexM33F):
+class NRF54LApp(arm.cortexm.CortexM33F):
     @property
     def name(self):
-        return "nrf54l"
+        return "nrf54l_app"
 
     @property
     def parent(self):
@@ -352,7 +352,7 @@ class NRF54L(arm.cortexm.CortexM33F):
         }
 
     def __init__(self):
-        super(NRF54L, self).__init__()
+        super(NRF54LApp, self).__init__()
 
         self.add_gnat_sources(
             "arm/src/breakpoint_handler-cortexm.S",
@@ -599,8 +599,8 @@ def build_configs(target):
         return NRF52833()
     elif target == "nrf52840":
         return NRF52840()
-    elif target == "nrf54l":
-        return NRF54L()
+    elif target == "nrf54l_app":
+        return NRF54LApp()
     elif target == "stm32f0xx":
         return Stm32F0()
     elif target == "stm32g0xx":

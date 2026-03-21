@@ -51,7 +51,7 @@ with Interfaces.NRF54.KMU;           use Interfaces.NRF54.KMU;
 with Interfaces.NRF54.OSCILLATORS;   use Interfaces.NRF54.OSCILLATORS;
 with Interfaces.NRF54.TAD;           use Interfaces.NRF54.TAD;
 
-with NRF54_Runtime_Config; use NRF54_Runtime_Config;
+with NRF54_App_Runtime_Config; use NRF54_App_Runtime_Config;
 
 procedure Setup_Board is
 
@@ -87,7 +87,7 @@ procedure Setup_Board is
       Is_Applicable : Boolean := False;
 
    begin
-      case NRF54_Runtime_Config.Device is
+      case NRF54_App_Runtime_Config.Device is
          when nRF54L15 =>
             Is_Applicable := Var_1 = 16#1C# and then Var_2 = 16#01#;
 
@@ -124,7 +124,8 @@ procedure Setup_Board is
       Reg : Unsigned_32
       with Volatile, Import, Address => System'To_Address (16#5012_0640#);
 
-      Is_nRF54L15 : constant Boolean := NRF54_Runtime_Config.Device = nRF54L15;
+      Is_nRF54L15 : constant Boolean :=
+        NRF54_App_Runtime_Config.Device = nRF54L15;
 
    begin
       if Is_nRF54L15 then
@@ -151,7 +152,7 @@ procedure Setup_Board is
       Is_Applicable : Boolean := False;
 
    begin
-      case NRF54_Runtime_Config.Device is
+      case NRF54_App_Runtime_Config.Device is
          when nRF54L15   =>
             Is_Applicable := Var_1 = 16#1C#;
 
@@ -190,7 +191,8 @@ procedure Setup_Board is
       Reg : Unsigned_32
       with Volatile, Import, Address => System'To_Address (16#5008_A7AC#);
 
-      Is_nRF54L15 : constant Boolean := NRF54_Runtime_Config.Device = nRF54L15;
+      Is_nRF54L15 : constant Boolean :=
+        NRF54_App_Runtime_Config.Device = nRF54L15;
 
    begin
       if Is_nRF54L15 then
@@ -221,10 +223,10 @@ procedure Setup_Board is
    Unused : Interfaces.NRF54.KMU.STATUS_Register;
 
    Is_Secure : constant Boolean :=
-     NRF54_Runtime_Config.Security_Level = Secure;
+     NRF54_App_Runtime_Config.Security_Level = Secure;
 
    LFCLK_Source : constant SRC_SRC_Field :=
-     (case NRF54_Runtime_Config.LFCLK_Src is
+     (case NRF54_App_Runtime_Config.LFCLK_Src is
         when LFXO   => LFXO,
         when LFRC   => LFRC,
         when LFSYNT => LFSYNT);
@@ -248,18 +250,18 @@ begin
 
       GLOBAL_OSCILLATORS_S_Periph.PLL.FREQ :=
         (FREQ   =>
-           (case NRF54_Runtime_Config.MCU_Domain_Speed is
+           (case NRF54_App_Runtime_Config.MCU_Domain_Speed is
               when CK64M  => CK64M,
               when CK128M => CK128M),
          others => <>);
 
-      case NRF54_Runtime_Config.Device is
+      case NRF54_App_Runtime_Config.Device is
          when nRF54LM20A | nRF54LM20B | nRF54LV10A =>
             --  Dummy read the KMU to start its boot preparations
             Unused := GLOBAL_KMU_S_Periph.STATUS;
             pragma Unreferenced (Unused);
 
-         when others =>
+         when others                               =>
             null;
       end case;
 
@@ -271,8 +273,8 @@ begin
       Errata_40_Workaround;
       Errata_31_Workaround;
 
-      if NRF54_Runtime_Config.Enable_SWO then
-         case NRF54_Runtime_Config.Device is
+      if NRF54_App_Runtime_Config.Enable_SWO then
+         case NRF54_App_Runtime_Config.Device is
             when nRF54LV10A =>
                GLOBAL_P2_S_Periph.PIN_CNF_6 := Trace_Pin_Config;
                GLOBAL_P2_S_Periph.PIN_CNF_7 := Trace_Pin_Config;
@@ -283,8 +285,8 @@ begin
          end case;
       end if;
 
-      if NRF54_Runtime_Config.Enable_Trace then
-         case NRF54_Runtime_Config.Device is
+      if NRF54_App_Runtime_Config.Enable_Trace then
+         case NRF54_App_Runtime_Config.Device is
             when nRF54LV10A =>
                GLOBAL_P2_S_Periph.PIN_CNF_6 := Trace_Pin_Config;
                GLOBAL_P2_S_Periph.PIN_CNF_7 := Trace_Pin_Config;
@@ -299,7 +301,8 @@ begin
          end case;
       end if;
 
-      if NRF54_Runtime_Config.Enable_SWO or NRF54_Runtime_Config.Enable_Trace
+      if NRF54_App_Runtime_Config.Enable_SWO
+        or NRF54_App_Runtime_Config.Enable_Trace
       then
          --  Use highest bias setting for E0/E1 drive mode
          GLOBAL_GPIOHSPADCTRL_S_Periph.BIAS := (HSBIAS => 3, others => <>);
@@ -308,7 +311,7 @@ begin
            (TRACEPORTSPEED => DIV2, others => <>);
       end if;
 
-      if NRF54_Runtime_Config.Enable_Glitch_Detector then
+      if NRF54_App_Runtime_Config.Enable_Glitch_Detector then
          GLOBAL_GLITCHDET_S_Periph.CONFIG.ENABLE := Enable;
       else
          GLOBAL_GLITCHDET_S_Periph.CONFIG := (ENABLE => Disable, others => <>);

@@ -1,5 +1,5 @@
 with "target_options.gpr";
-with "gnat_user/$(profile_underscored)_nrf54l_config.gpr";
+with "gnat_user/$(profile_underscored)_$(target)_config.gpr";
 
 project Runtime_Build is
   for Languages use ($(languages_list));
@@ -28,7 +28,7 @@ project Runtime_Build is
     when "ROM" =>
       Linker_Switches := Linker_Switches &
         ("-L", Runtime_Build'Project_Dir & "/ld/",
-         "-L", Runtime_Build'Project_Dir & "/ld/" & $(profile_underscored)_Nrf54l_Config.Device,
+         "-L", Runtime_Build'Project_Dir & "/ld/" & $(profile_underscored)_Nrf54l_App_Config.Device,
          "-T", "common-ROM.ld");
 
     when "USER" =>

@@ -1,6 +1,6 @@
 with "target_options.gpr";
 with "runtime_build.gpr";
-with "gnat_user/$(profile_underscored)_nrf54l_config.gpr";
+with "gnat_user/$(profile_underscored)_$(target)_config.gpr";
 
 project Ravenscar_Build is
    for Languages use ("Ada", "Asm_Cpp");
@@ -23,7 +23,7 @@ project Ravenscar_Build is
 
    Excluded_Sources := ();
 
-   case $(profile_underscored)_Nrf54l_Config.Device is
+   case $(profile_underscored)_Nrf54l_App_Config.Device is
       when "nRF54L05" =>
          Excluded_Sources := Excluded_Sources &
            ("a-intnam-nRF54L10.ads",
@@ -103,7 +103,7 @@ project Ravenscar_Build is
 
    package Naming is
       for Spec ("Ada.Interrupts.Names") use
-        "a-intnam-" & $(profile_underscored)_Nrf54l_Config.Device & ".ads";
+        "a-intnam-" & $(profile_underscored)_Nrf54l_App_Config.Device & ".ads";
    end Naming;
 
    package Compiler is

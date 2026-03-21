@@ -45,7 +45,7 @@ with Interfaces.NRF54.CLOCK;       use Interfaces.NRF54.CLOCK;
 with Interfaces.NRF54.OSCILLATORS; use Interfaces.NRF54.OSCILLATORS;
 with Interfaces.NRF54.SPU;         use Interfaces.NRF54.SPU;
 
-with NRF54_Runtime_Config; use NRF54_Runtime_Config;
+with NRF54_App_Runtime_Config; use NRF54_App_Runtime_Config;
 
 package body System.BB.Board_Support is
    use CPU_Primitives, BB.Interrupts, Machine_Code, Time;
@@ -56,15 +56,15 @@ package body System.BB.Board_Support is
    --  Defined by ARMv7-M specifications.
 
    Alarm_Interrupt_ID : constant Interrupt_ID :=
-     226 + NRF54_Runtime_Config.Time_Base_GRTC_IRQ;
+     226 + NRF54_App_Runtime_Config.Time_Base_GRTC_IRQ;
 
-   Alarm_CC_Channel : constant := NRF54_Runtime_Config.Time_Base_GRTC_CCn;
+   Alarm_CC_Channel : constant := NRF54_App_Runtime_Config.Time_Base_GRTC_CCn;
 
    GRTC_Periph : aliased Interfaces.NRF54.GRTC.GRTC_Peripheral
    with
      Import,
      Address =>
-       (if NRF54_Runtime_Config.Security_Level = Secure
+       (if NRF54_App_Runtime_Config.Security_Level = Secure
         then Interfaces.NRF54.GRTC.GLOBAL_GRTC_S_Periph'Address
         else Interfaces.NRF54.GRTC.GLOBAL_GRTC_NS_Periph'Address);
 
@@ -72,7 +72,7 @@ package body System.BB.Board_Support is
    with
      Import,
      Address =>
-       (if NRF54_Runtime_Config.Security_Level = Secure
+       (if NRF54_App_Runtime_Config.Security_Level = Secure
         then Interfaces.NRF54.CLOCK.GLOBAL_CLOCK_S_Periph'Address
         else Interfaces.NRF54.CLOCK.GLOBAL_CLOCK_NS_Periph'Address);
 
@@ -81,7 +81,7 @@ package body System.BB.Board_Support is
    with
      Import,
      Address =>
-       (if NRF54_Runtime_Config.Security_Level = Secure
+       (if NRF54_App_Runtime_Config.Security_Level = Secure
         then Interfaces.NRF54.OSCILLATORS.GLOBAL_OSCILLATORS_S_Periph'Address
         else
           Interfaces.NRF54.OSCILLATORS.GLOBAL_OSCILLATORS_NS_Periph'Address);
@@ -90,7 +90,7 @@ package body System.BB.Board_Support is
    with
      Import,
      Address =>
-       (if NRF54_Runtime_Config.Security_Level = Secure
+       (if NRF54_App_Runtime_Config.Security_Level = Secure
         then Interfaces.NRF54.GLOBAL_GRTC_S_Base
         else Interfaces.NRF54.GLOBAL_GRTC_NS_Base)
        + 16#100#
@@ -100,11 +100,11 @@ package body System.BB.Board_Support is
    with
      Import,
      Address =>
-       (if NRF54_Runtime_Config.Security_Level = Secure
+       (if NRF54_App_Runtime_Config.Security_Level = Secure
         then Interfaces.NRF54.GLOBAL_GRTC_S_Base
         else Interfaces.NRF54.GLOBAL_GRTC_NS_Base)
        + 16#304#
-       + (16#10# * NRF54_Runtime_Config.Time_Base_GRTC_IRQ);
+       + (16#10# * NRF54_App_Runtime_Config.Time_Base_GRTC_IRQ);
 
    Alarm_Occurred : Boolean := False
    with Atomic;
@@ -185,7 +185,7 @@ package body System.BB.Board_Support is
 
    procedure Initialize_Board is
       Is_Secure : constant Boolean :=
-        NRF54_Runtime_Config.Security_Level = Secure;
+        NRF54_App_Runtime_Config.Security_Level = Secure;
 
    begin
       Disable_Interrupts;
@@ -202,7 +202,7 @@ package body System.BB.Board_Support is
               Import,
               Address =>
                 GLOBAL_SPU20_S_Periph.FEATURE.GRTC.CC_0'Address
-                + (4 * NRF54_Runtime_Config.Time_Base_GRTC_CCn);
+                + (4 * NRF54_App_Runtime_Config.Time_Base_GRTC_CCn);
 
             SPU_FEATURE_GRTC_INTERRUPT : Interfaces.NRF54.SPU.CC_GRTC_Register
             with
@@ -210,7 +210,7 @@ package body System.BB.Board_Support is
               Import,
               Address =>
                 GLOBAL_SPU20_S_Periph.FEATURE.GRTC.INTERRUPT_0'Address
-                + (4 * NRF54_Runtime_Config.Time_Base_GRTC_IRQ);
+                + (4 * NRF54_App_Runtime_Config.Time_Base_GRTC_IRQ);
          begin
             SPU_FEATURE_GRTC_CC :=
               (SECATTR => Secure, LOCK => Locked, others => <>);
@@ -292,7 +292,7 @@ package body System.BB.Board_Support is
       ----------------
 
       function Read_Clock return BB.Time.Time is
-         Channel : constant := NRF54_Runtime_Config.Time_Base_GRTC_IRQ;
+         Channel : constant := NRF54_App_Runtime_Config.Time_Base_GRTC_IRQ;
 
          SYSCOUNTERL : UInt32;
          SYSCOUNTERH : SYSCOUNTERH_SYSCOUNTER_Register;
