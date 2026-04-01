@@ -24,16 +24,6 @@ ARGUMENT_LIST=(
   "target"
 )
 
-# read arguments
-opts=$(getopt \
-  --longoptions "$(printf "%s:," "${ARGUMENT_LIST[@]}")" \
-  --name "$(basename "$0")" \
-  --options "" \
-  -- "$@"
-)
-
-eval set --$opts
-
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version)
@@ -47,7 +37,8 @@ while [[ $# -gt 0 ]]; do
       ;;
 
     *)
-      break
+      echo "unknown option: $1"
+      exit 1
       ;;
   esac
 done
