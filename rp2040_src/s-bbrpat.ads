@@ -33,7 +33,11 @@
 
 with Interfaces.C;
 
+with System.Atomic_Primitives;
+
 package System.BB.RP2040_Atomic is
+
+   package SAP renames System.Atomic_Primitives;
 
    ------------------------------
    -- __sync_lock_test_and_set --
@@ -65,6 +69,25 @@ package System.BB.RP2040_Atomic is
       new Sync_Bool_Compare_And_Swap (Interfaces.Unsigned_32);
    pragma Export (C, Sync_Bool_Compare_And_Swap_4,
                   "__sync_bool_compare_and_swap_4");
+
+   ---------------------------------
+   -- __atomic_compare_exchange_4 --
+   ---------------------------------
+
+   generic
+      type T is mod <>;
+   function Atomic_Compare_Exchange
+     (Ptr           : Address;
+      Expected      : Address;
+      Desired       : T;
+      Weak          : Interfaces.C.char;
+      Success_Model : SAP.Mem_Model;
+      Failure_Model : SAP.Mem_Model) return Interfaces.C.char;
+
+   function Atomic_Compare_Exchange_4 is new
+     Atomic_Compare_Exchange (Interfaces.Unsigned_32);
+   pragma Export (C, Atomic_Compare_Exchange_4,
+                  "__atomic_compare_exchange_4");
 
 private
 
