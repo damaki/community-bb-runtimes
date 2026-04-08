@@ -196,4 +196,45 @@ package body System.BB.RP2040_Atomic is
       return Ret;
    end Sync_Bool_Compare_And_Swap;
 
+   -----------------------------
+   -- Atomic_Compare_Exchange --
+   -----------------------------
+
+   function Atomic_Compare_Exchange
+     (Ptr           : Address;
+      Expected      : Address;
+      Desired       : T;
+      Weak          : Interfaces.C.char;
+      Success_Model : SAP.Mem_Model;
+      Failure_Model : SAP.Mem_Model) return Interfaces.C.char
+   is
+      pragma Unreferenced (Weak);
+      pragma Unreferenced (Success_Model);
+      pragma Unreferenced (Failure_Model);
+
+      Ptr_Value      : T with Address => Ptr;
+      Expected_Value : T with Address => Expected;
+      Ret            : Interfaces.C.char;
+
+      procedure Inner
+        with Inline_Always;
+
+      procedure Inner
+      is
+      begin
+         if Ptr_Value = Expected_Value then
+            Ptr_Value := Desired;
+            Ret := Interfaces.C.char'Succ (Interfaces.C.nul); -- True
+         else
+            Ret := Interfaces.C.nul; -- False
+         end if;
+      end Inner;
+
+      procedure Atomic_Action is new Atomic_Wrapper (Inner);
+
+   begin
+      Atomic_Action;
+      return Ret;
+   end Atomic_Compare_Exchange;
+
 end System.BB.RP2040_Atomic;

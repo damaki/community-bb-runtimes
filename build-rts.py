@@ -71,19 +71,19 @@ class RP2040(arm.cortexm.CortexM0P):
             "rp2040_src/s-bootro.adb",
             "rp2040_src/setup_clocks.adb",
             "rp2040_src/s-bbbopa.ads",
+            "rp2040_src/s-bbpara.ads",
+            "rp2040_src/s-bbrpat.ads",
+            "rp2040_src/s-bbrpat.adb",
         )
 
         # s-maxres__cortexm3.adb is also compatible with Cortex-M0+
         self.add_gnat_sources("src/s-macres__cortexm3.adb")
 
         # Common GNARL sources
-        self.add_gnarl_sources("rp2040_src/s-bbpara.ads")
-
         self.add_gnarl_sources(
             "rp2040_src/a-intnam-1.ads",
             "rp2040_src/a-intnam-2.ads",
             "rp2040_src/s-bbbosu.adb",
-            "rp2040_src/s-bbpara.ads",
             "rp2040_src/s-bbsumu.adb",
             "rp2040_src/s-bcpcst.adb",
             "src/s-bbcppr__armv7m.adb",
