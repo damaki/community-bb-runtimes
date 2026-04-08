@@ -443,8 +443,14 @@ class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
         # We use our own version of System.BB.Parameters
         self.remove_source("s-bbpara.ads")
 
+        # Use our own version of s-bbarat, which adds __atomic_compare_exchange_4
+        self.remove_source("s-bbarat.ads")
+        self.remove_source("s-bbarat.adb")
+
         # Common source files
         self.add_gnat_sources(
+            "common_src/s-bbarat.adb",
+            "common_src/s-bbarat.ads",
             "stm32f0_src/s-stm32.ads",
             "stm32f0_src/s-stm32.adb",
             "stm32f0_src/start-rom.S",
@@ -505,8 +511,14 @@ class Stm32G0(arm.cortexm.CortexM0P):
         self.add_linker_script("stm32g0_src/ld/common-RAM.ld")
         self.add_linker_script("stm32g0_src/ld/common-ROM.ld")
 
+        # Use our own version of s-bbarat, which adds __atomic_compare_exchange_4
+        self.remove_source("s-bbarat.ads")
+        self.remove_source("s-bbarat.adb")
+
         # Common source files
         self.add_gnat_sources(
+            "common_src/s-bbarat.adb",
+            "common_src/s-bbarat.ads",
             "stm32g0_src/start-rom.S",
             "stm32g0_src/start-ram.S",
             "stm32g0_src/setup_pll.ads",
