@@ -6,13 +6,16 @@ with support for the following runtime profiles:
 * light-tasking
 * embedded
 
+Currently, only the application core (Cortex-M33) is supported. Runtimes for
+the FLPR core are not provided.
+
 ## Usage
 
 First edit your `alire.toml` file and add the following elements:
- - Add `light_tasking_nrf54l` in the dependency list:
+ - Add `light_tasking_nrf54l_app` in the dependency list:
    ```toml
    [[depends-on]]
-   light_tasking_nrf54l = "*"
+   light_tasking_nrf54l_app = "*"
    ```
 
 Then edit your project file to add the following elements, depending on your
@@ -212,8 +215,8 @@ For example, to configure the runtime to use the internal LFRC oscillator as
 the LFCLK source and GRTC_IRQ_0 for timing, add this to your `alire.toml`:
 ```toml
 [configuration.values]
-light_tasking_nrf54l.LFCLK_Src = "RC"
-light_tasking_nrf54l.Time_Base_GRTC_IRQ = 0
+light_tasking_nrf54l_app.LFCLK_Src = "LFRC"
+light_tasking_nrf54l_app.Time_Base_GRTC_IRQ = 0
 ```
 
 ### GPR Scenario Variables
@@ -222,7 +225,7 @@ The runtime project files expose `*_BUILD` and and `*_LIBRARY_TYPE` GPR
 scenario variables to configure the build mode (e.g. debug/production) and
 library type. These variables are prefixed with the name of the runtime in
 upper case. For example, for the light-tasking runtime the variables
-are `LIGHT_TASKING_NRF524L_BUILD` and `LIGHT_TASKING_NRF524L_LIBRARY_TYPE`
+are `LIGHT_TASKING_NRF524L_APP_BUILD` and `LIGHT_TASKING_NRF524L_APP_LIBRARY_TYPE`
 respectively.
 
 The `*_BUILD` variable can be set to the following values:
@@ -239,11 +242,11 @@ You can usually leave these set to their defaults, but if you want to set them
 explicitly then you can set them either by passing them on the command line
 when building your project with Alire:
 ```sh
-alr build -- -XLIGHT_TASKING_NRF54L_BUILD=Debug
+alr build -- -XLIGHT_TASKING_NRF54L_APP_BUILD=Debug
 ```
 
 or by setting them in your project's `alire.toml`:
 ```toml
 [gpr-set-externals]
-LIGHT_TASKING_NRF54L_BUILD = "Debug"
+LIGHT_TASKING_NRF54L_APP_BUILD = "Debug"
 ```
