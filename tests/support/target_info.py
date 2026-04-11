@@ -102,7 +102,7 @@ class TargetInfo:
             "stm32f0xx",
             "rp2040",
             "rp2350",
-            "nrf54l",
+            "nrf54l_app",
         ]
 
     @property
