@@ -19,6 +19,14 @@ project Ravenscar_Build is
 
    for Source_Dirs use ("gnarl_user", "gnarl");
 
+   GPR_Tool := external ("GPR_TOOL", "");
+   case GPR_Tool is
+      when "gnatprove" =>
+         for Externally_Built use "True";
+      when others =>
+         null;
+   end case;
+
    --  Exclude sources that are not needed for the specified MCU config
 
    Excluded_Sources := ();

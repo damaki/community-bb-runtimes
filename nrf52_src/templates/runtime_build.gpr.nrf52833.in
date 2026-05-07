@@ -16,6 +16,14 @@ project Runtime_Build is
 
   for Source_Dirs use ("gnat_user", "gnat");
 
+  GPR_Tool := external ("GPR_TOOL", "");
+  case GPR_Tool is
+    when "gnatprove" =>
+      for Externally_Built use "True";
+    when others =>
+      null;
+  end case;
+
   package Naming is
      for Spec_Suffix ("Asm_CPP") use ".inc";
       for Spec ("Interfaces.NRF52")           use "i-nrf52.ads";
