@@ -18,6 +18,14 @@ project Ravenscar_Build is
 
    for Source_Dirs use ("gnarl_user", "gnarl");
 
+   GPR_Tool := external ("GPR_TOOL", "");
+   case GPR_Tool is
+      when "gnatprove" =>
+         for Externally_Built use "True";
+      when others =>
+         null;
+   end case;
+
    package Compiler is
       for Default_Switches ("C") use Target_Options.GNARL_CFLAGS;
       for Default_Switches ("Ada") use Target_Options.GNARL_ADAFLAGS & ("-gnaty-d");
