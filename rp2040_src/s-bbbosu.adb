@@ -164,8 +164,6 @@ package body System.BB.Board_Support is
 
       Install_Trap_Handler
         (Interrupt_Handler'Address, Interrupt_Request_Vector);
-
-      Enable_Interrupts (Priority'Last);
    end Initialize_Board;
 
    package body Time is
