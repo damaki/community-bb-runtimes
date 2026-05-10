@@ -44,6 +44,8 @@ pragma Restrictions (No_Elaboration_Code);
 with System.BB.Board_Parameters;
 with System.BB.MCU_Parameters;
 
+with STM32F0xx_Runtime_Config;
+
 package System.BB.Parameters is
    pragma Preelaborate (System.BB.Parameters);
 
@@ -98,12 +100,14 @@ package System.BB.Parameters is
    -- Stacks --
    ------------
 
-   Interrupt_Stack_Size : constant := 1024;
+   Interrupt_Stack_Size : constant :=
+     STM32F0xx_Runtime_Config.Interrupt_Stack_Size;
    --  Size of each of the interrupt stacks in bytes. While there nominally is
    --  an interrupt stack per interrupt priority, the entire space is used as a
    --  single stack.
 
-   Interrupt_Sec_Stack_Size : constant := 128;
+   Interrupt_Sec_Stack_Size : constant :=
+     STM32F0xx_Runtime_Config.Interrupt_Secondary_Stack_Size;
    --  Size of the secondary stack for interrupt handlers
 
    Has_FPU : constant Boolean := False;
