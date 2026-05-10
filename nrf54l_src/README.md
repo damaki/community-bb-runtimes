@@ -219,6 +219,29 @@ light_tasking_nrf54l_app.LFCLK_Src = "LFRC"
 light_tasking_nrf54l_app.Time_Base_GRTC_IRQ = 0
 ```
 
+The following variables configure the interrupt stack sizes:
+
+<table>
+  <thead>
+    <th>Variable</th>
+    <th>Values</th>
+    <th>Default</th>
+    <th>Description</th>
+  </thead>
+  <tr>
+    <td><tt>Interrupt_Stack_Size</tt></td>
+    <td>Any positive integer</td>
+    <td><tt>1024</tt></td>
+    <td>Specifies the size of the primary stack used for interrupt handlers.</td>
+  </tr>
+  <tr>
+    <td><tt>Interrupt_Secondary_Stack_Size</tt></td>
+    <td>Any positive integer</td>
+    <td><tt>128</tt></td>
+    <td>Specifies the size of the secondary stack used for interrupt handlers.</td>
+  </tr>
+</table>
+
 ### GPR Scenario Variables
 
 The runtime project files expose `*_BUILD` and and `*_LIBRARY_TYPE` GPR

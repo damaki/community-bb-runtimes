@@ -57,5 +57,8 @@ Enable_SWO = { type = "Boolean", default = true }
 Enable_Trace = { type = "Boolean", default = false }
 Enable_Glitch_Detector = { type = "Boolean", default = true }
 
+Interrupt_Stack_Size = { type = "Integer", first = 1, default = 1024 }
+Interrupt_Secondary_Stack_Size = { type = "Integer", first = 1, default = 128 }
+
 [[depends-on]]
 gnat_arm_elf = "^15"
