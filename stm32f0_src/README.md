@@ -282,6 +282,29 @@ light_tasking_stm32f0xx.AHB_Pre = "DIV1"
 light_tasking_stm32f0xx.APB_Pre = "DIV1"
 ```
 
+The following variables configure the interrupt stack sizes:
+
+<table>
+  <thead>
+    <th>Variable</th>
+    <th>Values</th>
+    <th>Default</th>
+    <th>Description</th>
+  </thead>
+  <tr>
+    <td><tt>Interrupt_Stack_Size</tt></td>
+    <td>Any positive integer</td>
+    <td><tt>1024</tt></td>
+    <td>Specifies the size of the primary stack used for interrupt handlers.</td>
+  </tr>
+  <tr>
+    <td><tt>Interrupt_Secondary_Stack_Size</tt></td>
+    <td>Any positive integer</td>
+    <td><tt>128</tt></td>
+    <td>Specifies the size of the secondary stack used for interrupt handlers.</td>
+  </tr>
+</table>
+
 ### GPR Scenario Variables
 
 The runtime project files expose `*_BUILD` and and `*_LIBRARY_TYPE` GPR
