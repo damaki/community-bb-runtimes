@@ -15,12 +15,12 @@ First edit your `alire.toml` file and add the following elements:
 Then edit your project file to add the following elements:
  - "with" the run-time project file. With this, gprbuild will compile the run-time before your application
    ```ada
-   with "$(runtime_proj_prefix)_build.gpr";
+$(project_file_withs)
    ```
  - Specify the `Target` and `Runtime` attributes:
    ```ada
-      for Target use $(runtime_proj_prefix)_build'Target;
-      for Runtime ("Ada") use $(runtime_proj_prefix)_build'Runtime ("Ada");
+      for Target use Runtime_Build'Target;
+      for Runtime ("Ada") use Runtime_Build'Runtime ("Ada");
    ```
 """
 
