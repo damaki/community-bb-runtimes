@@ -5,7 +5,9 @@
 
 import argparse
 import pathlib
+import re
 import shutil
+import sys
 import tomllib
 from typing import Dict
 
@@ -77,6 +79,25 @@ def gen_from_template(
     for key, value in template_values.items():
         content = content.replace(f"$({key})", value)
 
+    # Check for any unrecognised template variables
+    m = re.search(r"\$\([^\)]+\)", content)
+    if m:
+        print(
+            f"Error: unrecognised template variable '{m.group(0)}'"
+            f" in file {str(template_file)}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    m = re.search(r"\$\(\w*", content)
+    if m:
+        print(
+            f"Error: malformed template variable '{m.group(0)}'"
+            f" in file {str(template_file)}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     with open(out_file, "w", newline="\n") as f:
         f.write(content)
 
@@ -101,10 +122,10 @@ def gen_templates_from_manifest(
                     src = template_info["src"]
                     dst = template_info["dst"]
 
-                    for k,v in template_values.items():
+                    for k, v in template_values.items():
                         src = src.replace(f"$({k})", v)
 
-                    for k,v in template_values.items():
+                    for k, v in template_values.items():
                         dst = dst.replace(f"$({k})", v)
 
                     gen_from_template(
