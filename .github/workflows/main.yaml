@@ -25,9 +25,9 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: alire-project/setup-alire@v5
+      - uses: alire-project/setup-alire@v6
         with:
-          version: 2.1.0
+          version: 2.1.1
           toolchain: 'gnat_arm_elf gprbuild'
 
       - name: Generate Runtimes
@@ -63,7 +63,7 @@ jobs:
           pytest . -v --junit-xml=reports/runtime-tests.xml
 
       - name: Test Report
-        uses: dorny/test-reporter@v2.6.0
+        uses: dorny/test-reporter@v3
         if: ${{ !cancelled() && (matrix.os != 'windows-latest') }} # run this step even if previous step failed
         with:
           name: Runtime Tests
