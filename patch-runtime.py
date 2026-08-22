@@ -160,7 +160,7 @@ def main():
     parser.add_argument(
         "--version",
         type=str,
-        default="15.3.0-dev",
+        default="16.0.0-dev",
         help="Version string to put in the alire.toml file",
     )
 
@@ -190,7 +190,9 @@ def main():
     template_values = {
         "profile": profile,
         "profile_underscored": profile.replace("-", "_"),
+        "profile_underscored_upper": profile.replace("-", "_").upper(),
         "target": target,
+        "target_upper": target.upper(),
         "pretty_target": pretty_target,
         "project_files_list": str(project_files),
         "version": args.version,
