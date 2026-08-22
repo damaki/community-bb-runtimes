@@ -31,7 +31,7 @@ pragma Suppress (All_Checks);
 --  This initialization procedure mainly initializes the PLLs and
 --  all derived clocks.
 
-with Interfaces.STM32;           use Interfaces, Interfaces.STM32;
+with Interfaces.STM32;           use Interfaces.STM32;
 with Interfaces.STM32.Flash;     use Interfaces.STM32.Flash;
 with Interfaces.STM32.PWR;       use Interfaces.STM32.PWR;
 with Interfaces.STM32.RCC;       use Interfaces.STM32.RCC;

@@ -58,9 +58,55 @@ SECTIONS
   } > flash
 
   .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } > flash
+  /* .ARM.exidx is 4-bytes aligned, so __exidx_start needs to be
+     aligned too. Note that assigning the location counter also makes
+     ld attach the following symbols to the next section (instead of the
+     previous section which is the default), so will properly
+     consider the location counter of .ARM.exidx for __exidx_start and
+      __exidx_end and not the previous section's one. */
+  . = ALIGN(0x4);
+  PROVIDE_HIDDEN (__exidx_start = .);
   .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) } > flash
-  PROVIDE_HIDDEN (__exidx_start = LOADADDR(.ARM.exidx));
-  PROVIDE_HIDDEN (__exidx_end = __exidx_start + SIZEOF(.ARM.exidx));
+  PROVIDE_HIDDEN (__exidx_end = .);
+
+  .init  : { KEEP(*(.init)) } > flash
+  .fini  : { KEEP(*(.fini)) } > flash
+
+  .eh_frame_hdr :
+  {
+     __eh_frame_hdr = .;
+    *(.eh_frame_hdr)
+  } > flash
+
+  __eh_frame_hdr_start = SIZEOF(.eh_frame_hdr) > 0 ? ADDR(.eh_frame_hdr) : 0;
+  __eh_frame_hdr_end = SIZEOF(.eh_frame_hdr) > 0 ? . : 0;
+
+  .eh_frame         :
+  {
+     __eh_frame_start = .;
+     KEEP (*(.eh_frame))
+     __eh_frame_end = .;
+  } > flash
+
+  .preinit_array (ALIGN(4)) : {
+     PROVIDE_HIDDEN (__preinit_array_start = .);
+     KEEP (*(.preinit_array))
+     PROVIDE_HIDDEN (__preinit_array_end = .);
+  } > flash
+
+  .init_array (ALIGN(4)) : {
+     PROVIDE_HIDDEN (__init_array_start = .);
+     KEEP (*(SORT(.init_array.*)))
+     KEEP (*(.init_array))
+     PROVIDE_HIDDEN (__init_array_end = .);
+  } > flash
+
+  .fini_array (ALIGN(4)) : {
+     PROVIDE_HIDDEN (__fini_array_start = .);
+     KEEP (*(SORT(.fini_array.*)))
+     KEEP (*(.fini_array))
+     PROVIDE_HIDDEN (__fini_array_end = .);
+  } > flash
 
   .rodata :
   {

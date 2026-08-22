@@ -74,6 +74,45 @@ SECTIONS
     . = ALIGN(0x4);
   } > sram_ro
 
+  .init  : { KEEP(*(.init)) } > sram_ro
+  .fini  : { KEEP(*(.fini)) } > sram_ro
+
+  .eh_frame_hdr :
+  {
+     __eh_frame_hdr = .;
+    *(.eh_frame_hdr)
+  } > sram_ro
+
+  __eh_frame_hdr_start = SIZEOF(.eh_frame_hdr) > 0 ? ADDR(.eh_frame_hdr) : 0;
+  __eh_frame_hdr_end = SIZEOF(.eh_frame_hdr) > 0 ? . : 0;
+
+  .eh_frame         :
+  {
+     __eh_frame_start = .;
+     KEEP (*(.eh_frame))
+     __eh_frame_end = .;
+  } > sram_ro
+
+  .preinit_array (ALIGN(4)) : {
+     PROVIDE_HIDDEN (__preinit_array_start = .);
+     KEEP (*(.preinit_array))
+     PROVIDE_HIDDEN (__preinit_array_end = .);
+  } > sram_ro
+
+  .init_array (ALIGN(4)) : {
+     PROVIDE_HIDDEN (__init_array_start = .);
+     KEEP (*(SORT(.init_array.*)))
+     KEEP (*(.init_array))
+     PROVIDE_HIDDEN (__init_array_end = .);
+  } > sram_ro
+
+  .fini_array (ALIGN(4)) : {
+     PROVIDE_HIDDEN (__fini_array_start = .);
+     KEEP (*(SORT(.fini_array.*)))
+     KEEP (*(.fini_array))
+     PROVIDE_HIDDEN (__fini_array_end = .);
+  } > sram_ro
+
   .data :
   {
     __data_start = .;
