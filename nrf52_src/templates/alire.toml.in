@@ -45,7 +45,6 @@ Use_SWO_Trace = { type = "Boolean", default = true }
 Use_Reset_Pin = { type = "Boolean", default = true }
 
 Interrupt_Stack_Size = { type = "Integer", first = 1, default = 1024 }
-Interrupt_Secondary_Stack_Size = { type = "Integer", first = 1, default = 128 }
 
 [[depends-on]]
 gnat_arm_elf = "^16"

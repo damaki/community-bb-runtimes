@@ -171,16 +171,6 @@ in the following subsections:
       Sets the size of the primary stack used for interrupt handlers in bytes.
     </td>
   </tr>
-  <tr>
-    <td><tt>Interrupt_Secondary_Stack_Size</tt></td>
-    <td>
-      Any positive integer
-    </td>
-    <td><tt>128</tt></td>
-    <td>
-      Sets the size of the secondary stack used for interrupt handlers in bytes.
-    </td>
-  </tr>
 </table>
 
 For example, to configure the light_tasking_rp2040 runtime to only use the
