@@ -107,10 +107,6 @@ package System.BB.Parameters is
    --  an interrupt stack per interrupt priority, the entire space is used as a
    --  single stack.
 
-   Interrupt_Sec_Stack_Size : constant :=
-     NRF52_Runtime_Config.Interrupt_Secondary_Stack_Size;
-   --  Size of the secondary stack for interrupt handlers
-
    Has_FPU : constant Boolean := True;
    --  Set to true if core has a FPU
 

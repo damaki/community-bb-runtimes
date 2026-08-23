@@ -77,7 +77,6 @@ PLL_USB_Post_Div_1 = { type = "Integer", first = 1, last = 7, default = 5 }
 PLL_USB_Post_Div_2 = { type = "Integer", first = 1, last = 7, default = 2 }
 
 Interrupt_Stack_Size = { type = "Integer", first = 1, default = 1024 }
-Interrupt_Secondary_Stack_Size = { type = "Integer", first = 1, default = 128 }
 
 [[depends-on]]
 gnat_arm_elf = "^16"

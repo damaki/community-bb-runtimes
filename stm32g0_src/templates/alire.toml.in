@@ -84,11 +84,10 @@ $(profile_underscored)_$(target).PLL_P_Enable = false
 The runtime will enable the PLL only when either `PLL_Q_Enable` or `PLL_P_Enable`
 is `true`, or when `SYSCLK_Src = "PLLRCLK"`.
 
-The interrupt stack sizes are also configurable:
+The interrupt stack size is also configurable:
 ```toml
 [configuration.values]
 $(profile_underscored)_$(target).Interrupt_Stack_Size = 1024
-$(profile_underscored)_$(target).Interrupt_Secondary_Stack_Size = 128
 ```
 """
 
@@ -130,7 +129,6 @@ AHB_Pre = { type = "Enum", values = ["DIV1", "DIV2", "DIV4", "DIV8", "DIV16", "D
 APB_Pre = { type = "Enum", values = ["DIV1", "DIV2", "DIV4", "DIV8", "DIV16"], default = "DIV1" }
 
 Interrupt_Stack_Size = { type = "Integer", first = 1, default = 1024 }
-Interrupt_Secondary_Stack_Size = { type = "Integer", first = 1, default = 128 }
 
 [[depends-on]]
 gnat_arm_elf = "^16"
