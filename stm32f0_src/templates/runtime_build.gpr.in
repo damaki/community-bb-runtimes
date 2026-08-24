@@ -181,7 +181,7 @@ project Runtime_Build is
   case Loader is
     when "ROM" | "RAM" =>
       Linker_Switches := Linker_Switches &
-        ("-T", Runtime_Build'Project_Dir
+        ("-T" & Runtime_Build'Project_Dir
                  & "/ld/memory-map-"
                  & Loader & "-"
                  & ROM_Size & "-"
