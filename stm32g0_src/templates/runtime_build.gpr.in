@@ -98,15 +98,15 @@ project Runtime_Build is
   case Loader is
     when "ROM" =>
       Linker_Switches := Linker_Switches &
-        ("-L", Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
-         "-L", Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
-         "-T", "common-ROM.ld");
+        ("-L" & Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
+         "-L" & Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
+         "-T" & "common-ROM.ld");
 
     when "RAM" =>
       Linker_Switches := Linker_Switches &
-        ("-L", Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
-         "-L", Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
-         "-T", "common-RAM.ld");
+        ("-L" & Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
+         "-L" & Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
+         "-T" & "common-RAM.ld");
 
     when "USER" =>
   end case;

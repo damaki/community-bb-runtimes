@@ -36,7 +36,7 @@ project Boot2 is
    end Compiler;
 
    package Linker is
-      for Switches ("Ada") use ("-T", "memory-map.ld", "-Wl,--gc-sections");
+      for Switches ("Ada") use ("-T" & "memory-map.ld", "-Wl,--gc-sections");
    end Linker;
 
    package Builder is

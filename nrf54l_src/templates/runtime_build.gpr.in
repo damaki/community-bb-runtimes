@@ -42,9 +42,9 @@ project Runtime_Build is
   case Loader is
     when "ROM" =>
       Linker_Switches := Linker_Switches &
-        ("-L", Runtime_Build'Project_Dir & "/ld/",
-         "-L", Runtime_Build'Project_Dir & "/ld/" & $(profile_underscored)_Nrf54l_App_Config.Device,
-         "-T", "common-ROM.ld");
+        ("-L" & Runtime_Build'Project_Dir & "/ld/",
+         "-L" & Runtime_Build'Project_Dir & "/ld/" & $(profile_underscored)_Nrf54l_App_Config.Device,
+         "-T" & "common-ROM.ld");
 
     when "USER" =>
   end case;
