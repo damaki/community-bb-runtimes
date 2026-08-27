@@ -8,8 +8,14 @@ dst = "ravenscar_build.gpr"
 excluded_profiles = ["light"]
 
 [[template]]
+src = "runtime_build__light.gpr.in"
+dst = "runtime_build.gpr"
+excluded_profiles = ["light-tasking", "embedded"]
+
+[[template]]
 src = "runtime_build.gpr.in"
 dst = "runtime_build.gpr"
+excluded_profiles = ["light"]
 
 [[template]]
 src = "stm32g4xx_runtime_config.ads.in"

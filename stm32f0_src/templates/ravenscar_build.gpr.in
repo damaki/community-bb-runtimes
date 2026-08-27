@@ -1,4 +1,5 @@
 with "target_options.gpr";
+with "gnat_user/$(profile_underscored)_stm32f0xx_config.gpr";
 with "runtime_build.gpr";
 
 project Ravenscar_Build is
@@ -20,10 +21,13 @@ project Ravenscar_Build is
          null;
    end case;
 
-   for Library_Dir use "adalib";
-   for Object_Dir use "obj";
+   for Library_Dir use Runtime_Build.Runtime_Dir & "/adalib";
+   for Object_Dir use Runtime_Build.Runtime_Dir & "/obj";
 
-   for Source_Dirs use ("gnarl_user", "gnarl");
+   for Source_Dirs use
+     ("gnarl_user",
+      "gnarl",
+      "gnarl/" & $(profile_underscored)_Stm32f0xx_Config.MCU_Sub_Family);
 
    GPR_Tool := external ("GPR_TOOL", "");
    case GPR_Tool is
@@ -32,34 +36,6 @@ project Ravenscar_Build is
       when others =>
          null;
    end case;
-
-   --  Exclude sources that are not needed for the specified MCU config
-
-   Excluded_Sources := ();
-
-   case Runtime_Build.MCU_Sub_Family_Minor is
-      when "0" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam_1.ads", "a-intnam_2.ads", "a-intnam_8.ads");
-
-      when "1" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam_0.ads", "a-intnam_2.ads", "a-intnam_8.ads");
-
-      when "2" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam_0.ads", "a-intnam_1.ads", "a-intnam_8.ads");
-
-      when others =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam_0.ads", "a-intnam_1.ads", "a-intnam_2.ads");
-   end case;
-
-   for Excluded_Source_Files use Excluded_Sources;
-
-   package Naming is
-      for Spec ("Ada.Interrupts.Names") use "a-intnam_" & Runtime_Build.MCU_Sub_Family_Minor & ".ads";
-   end Naming;
 
    package Compiler is
       for Default_Switches ("C") use Target_Options.GNARL_CFLAGS;

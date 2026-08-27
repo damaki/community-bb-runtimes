@@ -2,21 +2,8 @@ with "target_options.gpr";
 with "gnat_user/$(profile_underscored)_stm32g0xx_config.gpr";
 
 project Runtime_Build is
-
-  Sub_Family := "";
-
-  case $(profile_underscored)_Stm32g0xx_Config.MCU_Sub_Family is
-     when "G031" | "G041" | "G051" | "G061" | "G071" | "G081" | "G0B1" | "G0C1" =>
-        Sub_Family := "g0x1";
-
-     when "G030" | "G050" | "G070" | "G0B0" =>
-        Sub_Family := "g0x0";
-  end case;
-
-  Runtime_Dir := Project'Project_Dir & "/runtimes/" & Sub_Family;
-
   for Languages use ($(languages_list));
-  for Runtime ("Ada") use Runtime_Dir;
+  for Runtime ("Ada") use Project'Project_Dir;
   for Target use "arm-eabi";
 
   for Library_Auto_Init use "False";
@@ -32,8 +19,8 @@ project Runtime_Build is
          null;
    end case;
 
-  for Library_Dir use Runtime_Dir & "/adalib";
-  for Object_Dir use Runtime_Dir & "/obj";
+  for Library_Dir use "adalib";
+  for Object_Dir use "obj";
 
   for Source_Dirs use ("gnat_user", "gnat");
 
@@ -111,17 +98,13 @@ project Runtime_Build is
   case Loader is
     when "ROM" =>
       Linker_Switches := Linker_Switches &
-        ("-L" & Runtime_Build'Project_Dir & "/ld_user",
-         "-L" & Runtime_Build'Project_Dir & "/ld",
-         "-L" & Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
+        ("-L" & Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
          "-L" & Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
          "-T" & "common-ROM.ld");
 
     when "RAM" =>
       Linker_Switches := Linker_Switches &
-        ("-L" & Runtime_Build'Project_Dir & "/ld_user",
-         "-L" & Runtime_Build'Project_Dir & "/ld",
-         "-L" & Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
+        ("-L" & Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
          "-L" & Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
          "-T" & "common-RAM.ld");
 
@@ -168,7 +151,7 @@ project Runtime_Build is
      --  to formal verification tools.
 
      for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
-       & ("-gnatet=" & Runtime_Dir & "/ada_target_properties");
+       & ("-gnatet=" & Project'Project_Dir & "/ada_target_properties");
   end Compiler;
 
   package CodePeer is

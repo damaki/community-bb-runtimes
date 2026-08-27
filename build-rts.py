@@ -8,7 +8,7 @@ import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent / "bb-runtimes"))
 
 import arm.cortexm
-import build_rts
+import support.files_holder
 from support import add_source_search_path
 
 
@@ -22,6 +22,26 @@ class ArmV7MArch_Patched(arm.cortexm.ArmV7MArch):
         # See: https://forum.ada-lang.io/t/a-bug-in-stm32-bareboard-runtimes/2168
         self.remove_source("s-bbbosu.adb")
         self.add_gnarl_sources("stm32g4_src/s-bbbosu.adb")
+
+
+# Use our own version of _copy that creates missing subdirectories in the
+# destination file path. This allows files to be installed in subdirectories
+# created under "gnat" and "gnarl".
+
+_bb_runtimes_copy = support.files_holder._copy
+
+
+def _copy_patched(src, dst, template_config=None):
+    dst_dir = os.path.dirname(dst)
+    if not os.path.exists(dst_dir):
+        os.makedirs(dst_dir)
+    _bb_runtimes_copy(src, dst, template_config)
+
+
+support.files_holder._copy = _copy_patched
+
+# Import build_rts here so that it uses the patched version of _copy
+import build_rts
 
 
 class RP2040(arm.cortexm.CortexM0P):
@@ -81,8 +101,6 @@ class RP2040(arm.cortexm.CortexM0P):
 
         # Common GNARL sources
         self.add_gnarl_sources(
-            "rp2040_src/a-intnam-1.ads",
-            "rp2040_src/a-intnam-2.ads",
             "rp2040_src/s-bbbosu.adb",
             "rp2040_src/s-bbsumu.adb",
             "rp2040_src/s-bcpcst.adb",
@@ -90,6 +108,17 @@ class RP2040(arm.cortexm.CortexM0P):
             "src/s-bbcppr__old.ads",
             "src/s-bbcpsp__cortexm.ads",
             "src/s-bcpcst__armvXm.ads",
+        )
+
+        self.add_source_alias(
+            "gnarl",
+            "cpus_1/a-intnam.ads",
+            "rp2040_src/a-intnam-1.ads",
+        )
+        self.add_source_alias(
+            "gnarl",
+            "cpus_2/a-intnam.ads",
+            "rp2040_src/a-intnam-2.ads",
         )
 
 
@@ -151,8 +180,6 @@ class RP2350(arm.cortexm.CortexM33F):
         self.add_gnarl_sources("rp2350_src/s-bbpara.ads")
 
         self.add_gnarl_sources(
-            "rp2350_src/a-intnam-1.ads",
-            "rp2350_src/a-intnam-2.ads",
             "rp2350_src/s-bbbosu.adb",
             "rp2350_src/s-bbpara.ads",
             "rp2350_src/s-bbsumu.adb",
@@ -161,6 +188,17 @@ class RP2350(arm.cortexm.CortexM33F):
             "src/s-bbcppr__old.ads",
             "src/s-bbcpsp__cortexm.ads",
             "src/s-bcpcst__armvXm.ads",
+        )
+
+        self.add_source_alias(
+            "gnarl",
+            "cpus_1/a-intnam.ads",
+            "rp2350_src/a-intnam-1.ads",
+        )
+        self.add_source_alias(
+            "gnarl",
+            "cpus_2/a-intnam.ads",
+            "rp2350_src/a-intnam-2.ads",
         )
 
 
@@ -380,14 +418,6 @@ class NRF54LApp(arm.cortexm.CortexM33F):
             "nrf54l_src/s-bbbosu.adb",
             "nrf54l_src/s-bbcppr.adb",
             "nrf54l_src/s-bbpara.ads",
-            "nrf54l_src/svd/a-intnam-nRF54L05.ads",
-            "nrf54l_src/svd/a-intnam-nRF54L10.ads",
-            "nrf54l_src/svd/a-intnam-nRF54L15.ads",
-            "nrf54l_src/svd/a-intnam-nRF54LM20A.ads",
-            "nrf54l_src/svd/a-intnam-nRF54LM20B.ads",
-            "nrf54l_src/svd/a-intnam-nRF54LS05A.ads",
-            "nrf54l_src/svd/a-intnam-nRF54LS05B.ads",
-            "nrf54l_src/svd/a-intnam-nRF54LV10A.ads",
             "nrf54l_src/svd/handler.S",
             "src/s-bbcppr__old.ads",
             "src/s-bbcpsp__cortexm.ads",
@@ -395,6 +425,26 @@ class NRF54LApp(arm.cortexm.CortexM33F):
             "src/s-bcpcst__armvXm.ads",
             "src/s-bcpcst__pendsv.adb",
         )
+
+        # Add a-intnam.ads variants under their own subdirectories under gnarl
+        devices = [
+            "nRF54L05",
+            "nRF54L05",
+            "nRF54L10",
+            "nRF54L15",
+            "nRF54LM20A",
+            "nRF54LM20B",
+            "nRF54LS05A",
+            "nRF54LS05B",
+            "nRF54LV10A",
+        ]
+
+        for device in devices:
+            self.add_source_alias(
+                "gnarl",
+                f"{device}/a-intnam.ads",
+                f"nrf54l_src/svd/a-intnam__{device}.ads",
+            )
 
 
 class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
@@ -459,29 +509,59 @@ class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
             "stm32f0_src/setup_pll.adb",
             "stm32f0_src/s-bbpara.ads",
             "stm32f0_src/s-bbbopa.ads",
-            "stm32f0_src/s-bbmcpa-full.ads",
-            "stm32f0_src/s-bbmcpa-simple.ads",
-            "stm32f0_src/stm32f0x0/svd/i-stm32_0.ads",
-            "stm32f0_src/stm32f0x1/svd/i-stm32_1.ads",
-            "stm32f0_src/stm32f0x2/svd/i-stm32_2.ads",
-            "stm32f0_src/stm32f0x8/svd/i-stm32_8.ads",
-            "stm32f0_src/stm32f0x0/svd/i-stm32-flash_0.ads",
-            "stm32f0_src/stm32f0x1/svd/i-stm32-flash_1.ads",
-            "stm32f0_src/stm32f0x2/svd/i-stm32-flash_2.ads",
-            "stm32f0_src/stm32f0x8/svd/i-stm32-flash_8.ads",
-            "stm32f0_src/stm32f0x0/svd/i-stm32-rcc_0.ads",
-            "stm32f0_src/stm32f0x1/svd/i-stm32-rcc_1.ads",
-            "stm32f0_src/stm32f0x2/svd/i-stm32-rcc_2.ads",
-            "stm32f0_src/stm32f0x8/svd/i-stm32-rcc_8.ads",
         )
 
-        # Choose interrupt names based on family
-        self.add_gnarl_sources(
-            "stm32f0_src/stm32f0x0/svd/a-intnam_0.ads",
-            "stm32f0_src/stm32f0x1/svd/a-intnam_1.ads",
-            "stm32f0_src/stm32f0x2/svd/a-intnam_2.ads",
-            "stm32f0_src/stm32f0x8/svd/a-intnam_8.ads",
-        )
+        for device in [
+            "F030",
+            "F031",
+            "F038",
+            "F042",
+            "F048",
+            "F051",
+            "F058",
+            "F070",
+            "F071",
+            "F072",
+            "F078",
+            "F091",
+            "F098",
+        ]:
+            sub_family = device[2]
+            sub_family_minor = device[3]
+
+            if sub_family in ["3", "5"]:
+                self.add_source_alias(
+                    "gnat",
+                    f"{device}/s-bbmcpa.ads",
+                    f"stm32f0_src/s-bbmcpa-simple.ads",
+                )
+            else:
+                self.add_source_alias(
+                    "gnat",
+                    f"{device}/s-bbmcpa.ads",
+                    f"stm32f0_src/s-bbmcpa-full.ads",
+                )
+
+            self.add_source_alias(
+                "gnat",
+                f"{device}/i-stm32.ads",
+                f"stm32f0_src/stm32f0x{sub_family_minor}/svd/i-stm32_{sub_family_minor}.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{device}/i-stm32-rcc.ads",
+                f"stm32f0_src/stm32f0x{sub_family_minor}/svd/i-stm32-rcc_{sub_family_minor}.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{device}/i-stm32-flash.ads",
+                f"stm32f0_src/stm32f0x{sub_family_minor}/svd/i-stm32-flash_{sub_family_minor}.ads",
+            )
+            self.add_source_alias(
+                "gnarl",
+                f"{device}/a-intnam.ads",
+                f"stm32f0_src/stm32f0x{sub_family_minor}/svd/a-intnam_{sub_family_minor}.ads",
+            )
 
 
 class Stm32G0(arm.cortexm.CortexM0P):
@@ -535,9 +615,14 @@ class Stm32G0(arm.cortexm.CortexM0P):
         self.add_gnarl_sources(
             "src/s-bbbosu__armv6m.adb",
             "src/s-bcpcst__pendsv.adb",
-            "stm32g0_src/svd/a-intnam-g0x0.ads",
-            "stm32g0_src/svd/a-intnam-g0x1.ads",
         )
+
+        for device in ["g0x0", "g0x1"]:
+            self.add_source_alias(
+                "gnarl",
+                f"{device}/a-intnam.ads",
+                f"stm32g0_src/svd/a-intnam-{device}.ads",
+            )
 
 
 class Stm32G4(arm.cortexm.CortexM4F):
@@ -588,16 +673,21 @@ class Stm32G4(arm.cortexm.CortexM4F):
             "stm32g4_src/svd/i-stm32-rcc.ads",
         )
 
-        self.add_gnarl_sources(
-            "stm32g4_src/svd/a-intnam-G4A1.ads",
-            "stm32g4_src/svd/a-intnam-G431.ads",
-            "stm32g4_src/svd/a-intnam-G441.ads",
-            "stm32g4_src/svd/a-intnam-G473.ads",
-            "stm32g4_src/svd/a-intnam-G474.ads",
-            "stm32g4_src/svd/a-intnam-G483.ads",
-            "stm32g4_src/svd/a-intnam-G484.ads",
-            "stm32g4_src/svd/a-intnam-G491.ads",
-        )
+        for device in [
+            "G4A1",
+            "G431",
+            "G441",
+            "G473",
+            "G474",
+            "G483",
+            "G484",
+            "G491",
+        ]:
+            self.add_source_alias(
+                "gnarl",
+                f"{device}/a-intnam.ads",
+                f"stm32g4_src/svd/a-intnam-{device}.ads",
+            )
 
 
 def build_configs(target):

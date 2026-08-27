@@ -2,8 +2,11 @@ with "target_options.gpr";
 with "gnat_user/$(profile_underscored)_stm32f0xx_config.gpr";
 
 project Runtime_Build is
+
+  Runtime_Dir := Project'Project_Dir & "/runtimes/" & $(profile_underscored)_Stm32f0xx_Config.MCU_Sub_Family;
+
   for Languages use ($(languages_list));
-  for Runtime ("Ada") use Project'Project_Dir;
+  for Runtime ("Ada") use Runtime_Dir;
   for Target use "arm-eabi";
 
   for Library_Auto_Init use "False";
@@ -19,10 +22,13 @@ project Runtime_Build is
          null;
    end case;
 
-  for Library_Dir use "adalib";
-  for Object_Dir use "obj";
+  for Library_Dir use Runtime_Dir & "/adalib";
+  for Object_Dir use Runtime_Dir & "/obj";
 
-  for Source_Dirs use ("gnat_user", "gnat");
+  for Source_Dirs use
+    ("gnat_user",
+     "gnat",
+     "gnat/" & $(profile_underscored)_Stm32f0xx_Config.MCU_Sub_Family);
 
   GPR_Tool := external ("GPR_TOOL", "");
   case GPR_Tool is
@@ -32,11 +38,8 @@ project Runtime_Build is
       null;
   end case;
 
-  Excluded_Sources := ();
-
   ROM_Size := "16";
   RAM_Size := "4";
-  Sub_Family_Minor := "0";
 
   --  Determine the ROM size based on the "user code memory size" part of the
   --  STM32 part number.
@@ -76,101 +79,6 @@ project Runtime_Build is
        RAM_Size := "32";
   end case;
 
-  --  Determine the minor part (last digit) of the sub-family
-
-  MCU_Sub_Family_Minor := "0";
-
-  case $(profile_underscored)_Stm32f0xx_Config.MCU_Sub_Family is
-     when "F030" | "F070" =>
-       MCU_Sub_Family_Minor := "0";
-
-     when "F031" | "F051" | "F071" | "F091" =>
-       MCU_Sub_Family_Minor := "1";
-
-     when "F042" | "F072" =>
-       MCU_Sub_Family_Minor := "2";
-
-     when "F038" | "F048" | "F058" | "F078" | "F098" =>
-       MCU_Sub_Family_Minor := "8";
-
-  end case;
-
-  --  The F04x, F07x, and F09x support the full clock tree.
-  --  The F03x and F05x support the simple clock tree.
-
-  Clock_Tree_Kind := "simple";
-
-  case $(profile_underscored)_Stm32f0xx_Config.MCU_Sub_Family is
-     when "F030" | "F031" | "F038" | "F051" | "F058" =>
-       Clock_Tree_Kind := "simple";
-
-     when "F042" | "F048" | "F070" | "F071" | "F072" | "F078" | "F091" | "F098" =>
-       Clock_Tree_Kind := "full";
-
-  end case;
-
-  --  Exclude unused units
-
-  case Clock_Tree_Kind is
-    when "full" =>
-      Excluded_Sources := Excluded_Sources & ("s-bbmcpa-simple.ads");
-
-    when others =>
-      Excluded_Sources := Excluded_Sources & ("s-bbmcpa-full.ads");
-   end case;
-
-  case MCU_Sub_Family_Minor is
-    when "0" =>
-      Excluded_Sources := Excluded_Sources &
-        ("i-stm32_1.ads",
-         "i-stm32_2.ads",
-         "i-stm32_8.ads",
-         "i-stm32-flash_1.ads",
-         "i-stm32-flash_2.ads",
-         "i-stm32-flash_8.ads",
-         "i-stm32-rcc_1.ads",
-         "i-stm32-rcc_2.ads",
-         "i-stm32-rcc_8.ads");
-
-    when "1" =>
-      Excluded_Sources := Excluded_Sources &
-        ("i-stm32_0.ads",
-         "i-stm32_2.ads",
-         "i-stm32_8.ads",
-         "i-stm32-flash_0.ads",
-         "i-stm32-flash_2.ads",
-         "i-stm32-flash_8.ads",
-         "i-stm32-rcc_0.ads",
-         "i-stm32-rcc_2.ads",
-         "i-stm32-rcc_8.ads");
-
-    when "2" =>
-      Excluded_Sources := Excluded_Sources &
-        ("i-stm32_0.ads",
-         "i-stm32_1.ads",
-         "i-stm32_8.ads",
-         "i-stm32-flash_0.ads",
-         "i-stm32-flash_1.ads",
-         "i-stm32-flash_8.ads",
-         "i-stm32-rcc_0.ads",
-         "i-stm32-rcc_1.ads",
-         "i-stm32-rcc_8.ads");
-
-    when others =>
-      Excluded_Sources := Excluded_Sources &
-        ("i-stm32_0.ads",
-         "i-stm32_1.ads",
-         "i-stm32_2.ads",
-         "i-stm32-flash_0.ads",
-         "i-stm32-flash_1.ads",
-         "i-stm32-flash_2.ads",
-         "i-stm32-rcc_0.ads",
-         "i-stm32-rcc_1.ads",
-         "i-stm32-rcc_2.ads");
-  end case;
-
-  for Excluded_Source_Files use Excluded_Sources;
-
   --  Select linker script
 
   type Loaders is ("ROM", "RAM", "USER");
@@ -181,7 +89,9 @@ project Runtime_Build is
   case Loader is
     when "ROM" | "RAM" =>
       Linker_Switches := Linker_Switches &
-        ("-T" & Runtime_Build'Project_Dir
+        ("-L" & Runtime_Build'Project_Dir & "/ld_user",
+         "-L" & Runtime_Build'Project_Dir & "/ld",
+         "-T" & Runtime_Build'Project_Dir
                  & "/ld/memory-map-"
                  & Loader & "-"
                  & ROM_Size & "-"
@@ -192,10 +102,9 @@ project Runtime_Build is
   package Naming is
      for Spec_Suffix ("Asm_CPP") use ".inc";
 
-     for Spec ("Interfaces.STM32")         use "i-stm32_"       & MCU_Sub_Family_Minor & ".ads";
-     for Spec ("Interfaces.STM32.FLASH")   use "i-stm32-flash_" & MCU_Sub_Family_Minor & ".ads";
-     for Spec ("Interfaces.STM32.RCC")     use "i-stm32-rcc_"   & MCU_Sub_Family_Minor & ".ads";
-     for Spec ("System.BB.MCU_Parameters") use "s-bbmcpa-"      & Clock_Tree_Kind      & ".ads";
+     for Spec ("Interfaces.STM32")       use "i-stm32.ads";
+     for Spec ("Interfaces.STM32.FLASH") use "i-stm32-flash.ads";
+     for Spec ("Interfaces.STM32.RCC")   use "i-stm32-rcc.ads";
   end Naming;
 
   package Compiler is
@@ -231,7 +140,7 @@ project Runtime_Build is
      --  to formal verification tools.
 
      for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
-       & ("-gnatet=" & Project'Project_Dir & "/ada_target_properties");
+       & ("-gnatet=" & Runtime_Dir & "/ada_target_properties");
   end Compiler;
 
   package CodePeer is

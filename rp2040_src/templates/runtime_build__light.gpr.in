@@ -1,11 +1,9 @@
 with "target_options.gpr";
-with "gnat_user/$(profile_underscored)_rp2350_config.gpr";
+with "gnat_user/$(profile_underscored)_rp2040_config.gpr";
 
 project Runtime_Build is
-   Runtime_Dir := Project'Project_Dir & "/runtimes/cpus_" & $(profile_underscored)_Rp2350_Config.Max_CPUs;
-
    for Languages use ($(languages_list));
-   for Runtime ("Ada") use Runtime_Dir;
+   for Runtime ("Ada") use Project'Project_Dir;
    for Target use "arm-eabi";
 
    for Library_Auto_Init use "False";
@@ -21,8 +19,8 @@ project Runtime_Build is
          null;
    end case;
 
-   for Library_Dir use Runtime_Dir & "/adalib";
-   for Object_Dir use Runtime_Dir & "/obj";
+   for Library_Dir use "adalib";
+   for Object_Dir use "obj";
 
    for Source_Dirs use ("gnat_user", "gnat");
 
@@ -36,25 +34,47 @@ project Runtime_Build is
 
    Excluded_Sources := ();
 
-   --  Choose the flash size (in MB) based on the board
+   --  Choose the flash chip based on the board
 
-   Flash_Size := "2";
+   Flash_Chip : $(profile_underscored)_Rp2040_Config.Flash_Chip_Kind :=
+     "generic_qspi_128";
 
-   case $(profile_underscored)_Rp2350_Config.Board is
+   case $(profile_underscored)_Rp2040_Config.Board is
       when "generic_board" =>
-        Flash_Size := $(profile_underscored)_Rp2350_Config.Flash_Size;
+        Flash_Chip := $(profile_underscored)_Rp2040_Config.Flash_Chip;
 
-      when "rpi_pico2"                 => Flash_Size := "4";
-      when "pimoroni_pico_lipo_2_xl_w" => Flash_Size := "16";
-      when "pimoroni_pico_plus_2"      => Flash_Size := "16";
-      when "pimoroni_plasma_2350"      => Flash_Size := "4";
-      when "pimoroni_tiny_2350"        => Flash_Size := "4";
-      when "pimoroni_rp2350_stamp_xl"  => Flash_Size := "16";
-      when "pimoroni_rp2350_stamp"     => Flash_Size := "16";
-      when "pimoroni_pga2350"          => Flash_Size := "16";
-      when "adafruit_feather_rp2350"   => Flash_Size := "4";
-      when "adafruit_metro_rp2350"     => Flash_Size := "16";
-      when "adafruit_fruit_jam"        => Flash_Size := "16";
+      when "rpi_pico"                    => Flash_Chip := "w25q16jv";
+      when "adafruit_feather_rp2040"     => Flash_Chip := "gd25q64c";
+      when "adafruit_itsybitsy_rp2040"   => Flash_Chip := "w25q64jv";
+      when "adafruit_macropad_rp2040"    => Flash_Chip := "w25q64jv";
+      when "adafruit_qt2040_trinkey"     => Flash_Chip := "w25q64jv";
+      when "adafruit_qtpy_rp2040"        => Flash_Chip := "w25q64jv";
+      when "arduino_nano_rp2040_connect" => Flash_Chip := "generic_qspi_128";
+      when "pimoroni_interstate75"       => Flash_Chip := "w25q64jv";
+      when "pimoroni_keybow2040"         => Flash_Chip := "w25q16jv";
+      when "pimoroni_pga2040"            => Flash_Chip := "w25q64jv";
+      when "pimoroni_picolipo_4m"        => Flash_Chip := "w25q32jv";
+      when "pimoroni_picolipo_16m"       => Flash_Chip := "w25q128jv";
+      when "pimoroni_picosystem"         => Flash_Chip := "w25q128jv";
+      when "pimoroni_plasma2040"         => Flash_Chip := "w25q64jv";
+      when "pimoroni_tiny2040"           => Flash_Chip := "w25q64jv";
+      when "sparkfun_micromod"           => Flash_Chip := "w25q128jv";
+      when "sparkfun_promicro"           => Flash_Chip := "w25q128jv";
+      when "sparkfun_thingplus"          => Flash_Chip := "w25q128jv";
+   end case;
+
+   --  Set the flash size (in MB) based on the flash chip
+
+   Flash_Size := "16";
+
+   case Flash_Chip is
+      when "generic_qspi_128" => Flash_Size := "16";
+      when "at25sf128a"       => Flash_Size := "16";
+      when "gd25q64c"         => Flash_Size := "8";
+      when "w25q16jv"         => Flash_Size := "2";
+      when "w25q32jv"         => Flash_Size := "4";
+      when "w25q64jv"         => Flash_Size := "8";
+      when "w25q128jv"        => Flash_Size := "16";
    end case;
 
    --  Select linker script
@@ -73,20 +93,37 @@ project Runtime_Build is
       when "USER" =>
    end case;
 
+   --  Choose which sources are excluded based on the crate configuration
+
+   Excluded_Sources := ();
+
+   case Flash_Chip is
+      when "generic_qspi_128" | "at25sf128a" | "gd25q64c" =>
+         --  Use boot2-generic_qspi.S and exclude the other variants
+         Excluded_Sources := Excluded_Sources &
+           ("boot2-generic_03.S", "boot2-w25qxx.S");
+
+      when "w25q16jv" | "w25q32jv" | "w25q64jv" | "w25q128jv"=>
+         --  Use boot2-w25qxx.S and exclude the other variants
+         Excluded_Sources := Excluded_Sources &
+           ("boot2-generic_03.S", "boot2-generic_qspi.S");
+
+   end case;
+
+   for Excluded_Source_Files use Excluded_Sources;
+
    package Naming is
       for Spec_Suffix ("Asm_CPP") use ".inc";
-      for Spec ("Interfaces.RP2350")          use "i-rp2350.ads";
-      for Spec ("Interfaces.RP2350.CLOCKS")   use "i-rp2350-clocks.ads";
-      for Spec ("Interfaces.RP2350.PLL_SYS")  use "i-rp2350-pll_sys.ads";
-      for Spec ("Interfaces.RP2350.PSM")      use "i-rp2350-psm.ads";
-      for Spec ("Interfaces.RP2350.RESETS")   use "i-rp2350-resets.ads";
-      for Spec ("Interfaces.RP2350.ROSC")     use "i-rp2350-rosc.ads";
-      for Spec ("Interfaces.RP2350.SIO")      use "i-rp2350-sio.ads";
-      for Spec ("Interfaces.RP2350.TICKS")    use "i-rp2350-ticks.ads";
-      for Spec ("Interfaces.RP2350.TIMER0")   use "i-rp2350-timer0.ads";
-      for Spec ("Interfaces.RP2350.TIMER1")   use "i-rp2350-timer1.ads";
-      for Spec ("Interfaces.RP2350.WATCHDOG") use "i-rp2350-watchdog.ads";
-      for Spec ("Interfaces.RP2350.XOSC")     use "i-rp2350-xosc.ads";
+      for Spec ("Interfaces.RP2040")          use "i-rp2040.ads";
+      for Spec ("Interfaces.RP2040.CLOCKS")   use "i-rp2040-clocks.ads";
+      for Spec ("Interfaces.RP2040.PLL_SYS")  use "i-rp2040-pll_sys.ads";
+      for Spec ("Interfaces.RP2040.PSM")      use "i-rp2040-psm.ads";
+      for Spec ("Interfaces.RP2040.RESETS")   use "i-rp2040-resets.ads";
+      for Spec ("Interfaces.RP2040.ROSC")     use "i-rp2040-rosc.ads";
+      for Spec ("Interfaces.RP2040.SIO")      use "i-rp2040-sio.ads";
+      for Spec ("Interfaces.RP2040.TIMER")    use "i-rp2040-timer.ads";
+      for Spec ("Interfaces.RP2040.WATCHDOG") use "i-rp2040-watchdog.ads";
+      for Spec ("Interfaces.RP2040.XOSC")     use "i-rp2040-xosc.ads";
    end Naming;
 
    package Compiler is
@@ -122,7 +159,7 @@ project Runtime_Build is
       --  to formal verification tools.
 
       for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
-         & ("-gnatet=" & Runtime_Dir & "/ada_target_properties");
+         & ("-gnatet=" & Project'Project_Dir & "/ada_target_properties");
    end Compiler;
 
    package CodePeer is

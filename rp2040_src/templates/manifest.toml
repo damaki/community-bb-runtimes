@@ -10,6 +10,12 @@ excluded_profiles = ["light"]
 [[template]]
 src = "runtime_build.gpr.in"
 dst = "runtime_build.gpr"
+excluded_profiles = ["light"]
+
+[[template]]
+src = "runtime_build__light.gpr.in"
+dst = "runtime_build.gpr"
+excluded_profiles = ["light-tasking", "embedded"]
 
 [[template]]
 src = "rp2040_runtime_config.ads.in"

@@ -13,6 +13,12 @@ dst = "gnat_user/nrf54_app_runtime_config.h"
 [[template]]
 src = "runtime_build.gpr.in"
 dst = "runtime_build.gpr"
+excluded_profiles = ["light"]
+
+[[template]]
+src = "runtime_build__light.gpr.in"
+dst = "runtime_build.gpr"
+excluded_profiles = ["light-tasking", "embedded"]
 
 [[template]]
 src = "ravenscar_build.gpr.in"
