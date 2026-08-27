@@ -21,10 +21,13 @@ project Ravenscar_Build is
          null;
    end case;
 
-   for Library_Dir use "adalib";
-   for Object_Dir use "obj";
+   for Library_Dir use "runtimes/" & $(profile_underscored)_Nrf54l_App_Config.Device & "/adalib";
+   for Object_Dir use "runtimes/" & $(profile_underscored)_Nrf54l_App_Config.Device & "obj";
 
-   for Source_Dirs use ("gnarl_user", "gnarl");
+   for Source_Dirs use
+     ("gnarl_user",
+      "gnarl",
+      "gnarl/" & $(profile_underscored)_Nrf54l_App_Config.Device);
 
    GPR_Tool := external ("GPR_TOOL", "");
    case GPR_Tool is
@@ -33,93 +36,6 @@ project Ravenscar_Build is
       when others =>
          null;
    end case;
-
-   --  Exclude sources that are not needed for the specified MCU config
-
-   Excluded_Sources := ();
-
-   case $(profile_underscored)_Nrf54l_App_Config.Device is
-      when "nRF54L05" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-nRF54L10.ads",
-            "a-intnam-nRF54L15.ads",
-            "a-intnam-nRF54LM20A.ads",
-            "a-intnam-nRF54LM20B.ads",
-            "a-intnam-nRF54LS05A.ads",
-            "a-intnam-nRF54LS05B.ads",
-            "a-intnam-nRF54LV10A.ads");
-      when "nRF54L10" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-nRF54L05.ads",
-            "a-intnam-nRF54L15.ads",
-            "a-intnam-nRF54LM20A.ads",
-            "a-intnam-nRF54LM20B.ads",
-            "a-intnam-nRF54LS05A.ads",
-            "a-intnam-nRF54LS05B.ads",
-            "a-intnam-nRF54LV10A.ads");
-      when "nRF54LM20A" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-nRF54L05.ads",
-            "a-intnam-nRF54L10.ads",
-            "a-intnam-nRF54L15.ads",
-            "a-intnam-nRF54LM20B.ads",
-            "a-intnam-nRF54LS05A.ads",
-            "a-intnam-nRF54LS05B.ads",
-            "a-intnam-nRF54LV10A.ads");
-      when "nRF54LM20B" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-nRF54L05.ads",
-            "a-intnam-nRF54L10.ads",
-            "a-intnam-nRF54L15.ads",
-            "a-intnam-nRF54LM20A.ads",
-            "a-intnam-nRF54LS05A.ads",
-            "a-intnam-nRF54LS05B.ads",
-            "a-intnam-nRF54LV10A.ads");
-      when "nRF54LS05A" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-nRF54L05.ads",
-            "a-intnam-nRF54L10.ads",
-            "a-intnam-nRF54L15.ads",
-            "a-intnam-nRF54LM20A.ads",
-            "a-intnam-nRF54LM20B.ads",
-            "a-intnam-nRF54LS05B.ads",
-            "a-intnam-nRF54LV10A.ads");
-      when "nRF54LS05B" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-nRF54L05.ads",
-            "a-intnam-nRF54L10.ads",
-            "a-intnam-nRF54L15.ads",
-            "a-intnam-nRF54LM20A.ads",
-            "a-intnam-nRF54LM20B.ads",
-            "a-intnam-nRF54LS05A.ads",
-            "a-intnam-nRF54LV10A.ads");
-      when "nRF54LV10A" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-nRF54L05.ads",
-            "a-intnam-nRF54L10.ads",
-            "a-intnam-nRF54L15.ads",
-            "a-intnam-nRF54LM20A.ads",
-            "a-intnam-nRF54LM20B.ads",
-            "a-intnam-nRF54LS05A.ads",
-            "a-intnam-nRF54LS05B.ads");
-      when others =>
-         --  Assume nRF54L15 by default
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-nRF54L05.ads",
-            "a-intnam-nRF54L10.ads",
-            "a-intnam-nRF54LM20A.ads",
-            "a-intnam-nRF54LM20B.ads",
-            "a-intnam-nRF54LS05A.ads",
-            "a-intnam-nRF54LS05B.ads",
-            "a-intnam-nRF54LV10A.ads");
-   end case;
-
-   for Excluded_Source_Files use Excluded_Sources;
-
-   package Naming is
-      for Spec ("Ada.Interrupts.Names") use
-        "a-intnam-" & $(profile_underscored)_Nrf54l_App_Config.Device & ".ads";
-   end Naming;
 
    package Compiler is
       for Default_Switches ("C") use Target_Options.GNARL_CFLAGS;

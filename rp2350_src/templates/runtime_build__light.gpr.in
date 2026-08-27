@@ -2,10 +2,8 @@ with "target_options.gpr";
 with "gnat_user/$(profile_underscored)_rp2350_config.gpr";
 
 project Runtime_Build is
-   Runtime_Dir := Project'Project_Dir & "/runtimes/cpus_" & $(profile_underscored)_Rp2350_Config.Max_CPUs;
-
    for Languages use ($(languages_list));
-   for Runtime ("Ada") use Runtime_Dir;
+   for Runtime ("Ada") use Project'Project_Dir;
    for Target use "arm-eabi";
 
    for Library_Auto_Init use "False";
@@ -21,8 +19,8 @@ project Runtime_Build is
          null;
    end case;
 
-   for Library_Dir use Runtime_Dir & "/adalib";
-   for Object_Dir use Runtime_Dir & "/obj";
+   for Library_Dir use "adalib";
+   for Object_Dir use "obj";
 
    for Source_Dirs use ("gnat_user", "gnat");
 
@@ -122,7 +120,7 @@ project Runtime_Build is
       --  to formal verification tools.
 
       for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
-         & ("-gnatet=" & Runtime_Dir & "/ada_target_properties");
+         & ("-gnatet=" & Project'Project_Dir & "/ada_target_properties");
    end Compiler;
 
    package CodePeer is

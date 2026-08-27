@@ -21,10 +21,13 @@ project Ravenscar_Build is
          null;
    end case;
 
-   for Library_Dir use "adalib";
-   for Object_Dir use "obj";
+   for Library_Dir use Runtime_Build.Runtime_Dir & "/adalib";
+   for Object_Dir use Runtime_Build.Runtime_Dir & "/obj";
 
-   for Source_Dirs use ("gnarl_user", "gnarl");
+   for Source_Dirs use
+     ("gnarl_user",
+      "gnarl",
+      "gnarl/" & $(profile_underscored)_Stm32g4xx_Config.MCU_Sub_Family);
 
    GPR_Tool := external ("GPR_TOOL", "");
    case GPR_Tool is
@@ -33,99 +36,6 @@ project Ravenscar_Build is
       when others =>
          null;
    end case;
-
-   --  Exclude sources that are not needed for the specified MCU config
-
-   Excluded_Sources := ();
-
-   case $(profile_underscored)_Stm32g4xx_Config.MCU_Sub_Family is
-      when "G4A1" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-G431.ads",
-            "a-intnam-G441.ads",
-            "a-intnam-G473.ads",
-            "a-intnam-G474.ads",
-            "a-intnam-G483.ads",
-            "a-intnam-G484.ads",
-            "a-intnam-G491.ads");
-
-      when "G431" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-G4A1.ads",
-            "a-intnam-G441.ads",
-            "a-intnam-G473.ads",
-            "a-intnam-G474.ads",
-            "a-intnam-G483.ads",
-            "a-intnam-G484.ads",
-            "a-intnam-G491.ads");
-
-      when "G441" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-G4A1.ads",
-            "a-intnam-G431.ads",
-            "a-intnam-G473.ads",
-            "a-intnam-G474.ads",
-            "a-intnam-G483.ads",
-            "a-intnam-G484.ads",
-            "a-intnam-G491.ads");
-
-      when "G473" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-G4A1.ads",
-            "a-intnam-G431.ads",
-            "a-intnam-G441.ads",
-            "a-intnam-G474.ads",
-            "a-intnam-G483.ads",
-            "a-intnam-G484.ads",
-            "a-intnam-G491.ads");
-
-      when "G474" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-G4A1.ads",
-            "a-intnam-G431.ads",
-            "a-intnam-G441.ads",
-            "a-intnam-G473.ads",
-            "a-intnam-G483.ads",
-            "a-intnam-G484.ads",
-            "a-intnam-G491.ads");
-
-      when "G483" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-G4A1.ads",
-            "a-intnam-G431.ads",
-            "a-intnam-G441.ads",
-            "a-intnam-G473.ads",
-            "a-intnam-G474.ads",
-            "a-intnam-G484.ads",
-            "a-intnam-G491.ads");
-
-      when "G484" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-G4A1.ads",
-            "a-intnam-G431.ads",
-            "a-intnam-G441.ads",
-            "a-intnam-G473.ads",
-            "a-intnam-G474.ads",
-            "a-intnam-G483.ads",
-            "a-intnam-G491.ads");
-
-      when "G491" =>
-         Excluded_Sources := Excluded_Sources &
-           ("a-intnam-G4A1.ads",
-            "a-intnam-G431.ads",
-            "a-intnam-G441.ads",
-            "a-intnam-G473.ads",
-            "a-intnam-G474.ads",
-            "a-intnam-G483.ads",
-            "a-intnam-G484.ads");
-   end case;
-
-   for Excluded_Source_Files use Excluded_Sources;
-
-   package Naming is
-      for Spec ("Ada.Interrupts.Names") use
-        "a-intnam-" & $(profile_underscored)_Stm32g4xx_Config.MCU_Sub_Family & ".ads";
-   end Naming;
 
    package Compiler is
       for Default_Switches ("C") use Target_Options.GNARL_CFLAGS;
