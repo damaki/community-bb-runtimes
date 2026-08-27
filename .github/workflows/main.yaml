@@ -7,14 +7,10 @@ on:
 
 jobs:
 
-  build-and-test:
-    strategy:
-      matrix:
-        # Also build on Windows since there have been some windows-specific
-        # problems in the past around line ending style checks.
-        os: ["ubuntu-latest", "windows-latest"]
-
-    runs-on: ${{ matrix.os }}
+  # Job to perform a basic check that each runtime compiles.
+  # If this check passes, then other jobs will do more detail build tests
+  build-check:
+    runs-on: "ubuntu-latest"
 
     steps:
       - uses: actions/checkout@v6
@@ -43,14 +39,72 @@ jobs:
             echo "::endgroup::"
           done
 
+  run-build-tests:
+    needs: build-check
+
+    strategy:
+      matrix:
+        # Also build on Windows since there have been some windows-specific
+        # problems in the past around line ending style checks.
+        os: ["ubuntu-latest", "windows-latest"]
+
+        # Run a separate job for each target in parallel since it's so slow
+        # doing them sequentially on Windows (about 35 minutes to run all tests).
+        target: [
+          "nrf52832",
+          "nrf52833",
+          "nrf52840",
+          "rp2040",
+          "rp2350",
+          "stm32f0xx",
+          "stm32g0xx",
+          "stm32g4xx"
+        ]
+
+        # Only do per-target jobs on Windows. Linux is fast enough to do them
+        # all sequentially without spinning up parallel jobs.
+        # To do this, we remove ubuntu-latest (which removes all the per-target
+        # jobs), then re-add it without the 'target' defined.
+        exclude:
+          - os: ubuntu-latest
+        include:
+          - os: ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: alire-project/setup-alire@v6
+        with:
+          version: 2.1.1
+          toolchain: 'gnat_arm_elf gprbuild'
+
+      - name: Generate Runtimes
+        shell: bash
+        run: ./generate-runtimes.sh
+
       - name: Install Test Dependencies
         run: |
           pip install -r tests/requirements.txt
 
-      - name: Run tests
+      - name: Run all tests
+        if: ${{ matrix.target == '' }}
         run: |
           cd tests
-          pytest . -v --junit-xml=reports/runtime-tests.xml
+          pytest . -v --junit-xml=reports/runtime-tests.xml -k "not execute_on_target"
+
+      - name: Run target tests
+        if: ${{ matrix.target != '' }}
+        run: |
+          cd tests
+          pytest . -v --junit-xml=reports/runtime-tests.xml -k "not execute_on_target and ${{ matrix.target }}"
 
       - name: Test Report
         uses: dorny/test-reporter@v3
