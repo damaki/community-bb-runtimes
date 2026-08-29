@@ -1,0 +1,43 @@
+with "target_options.gpr";
+with "runtime_build.gpr";
+with "gnat_user/$(profile_underscored)_stm32f411_config.gpr";
+
+project Ravenscar_Build is
+   for Languages use ("Ada");
+
+   for Runtime ("Ada") use Runtime_Build'Runtime("Ada");
+   for Target use Runtime_Build'Target;
+
+   for Library_Auto_Init use "False";
+   for Library_Name use "gnarl";
+   for Library_Kind use Runtime_Build'Library_Kind;
+   for Library_Options use Runtime_Build'Library_Options;
+
+   case Target_Options.Lib is
+      when "static" => null;
+      when "dynamic" =>
+         for Library_Version use
+            "libgnarl-" & external ("$(profile_underscored_upper)_$(target_upper)_LIBRARY_VERSION", "") & ".so";
+         null;
+   end case;
+
+   for Library_Dir use Runtime_Build.Runtime_Dir & "/adalib";
+   for Object_Dir use Runtime_Build.Runtime_Dir & "/obj";
+
+   for Source_Dirs use ("gnarl_user", "gnarl");
+
+   GPR_Tool := external ("GPR_TOOL", "");
+   case GPR_Tool is
+     when "gnatprove" =>
+       for Externally_Built use "True";
+     when others =>
+       null;
+   end case;
+
+   package Compiler is
+      for Default_Switches ("C") use Target_Options.ALL_CFLAGS;
+      for Default_Switches ("Ada") use Target_Options.ALL_ADAFLAGS & ("-gnaty-d");
+      for Default_Switches ("Asm_Cpp") use Target_Options.ASMFLAGS;
+   end Compiler;
+
+end Ravenscar_Build;

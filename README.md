@@ -15,6 +15,7 @@ target-specific documentation:
  * [STMicroelectronics STM32F0xx Series](stm32f0_src/README.md)
  * [STMicroelectronics STM32G0xx Series](stm32g0_src/README.md)
  * [STMicroelectronics STM32G4xx Series](stm32g4_src/README.md)
+ * [STMicroelectronics STM32F411 Series](stm32f411_src/README.md)
 
 The runtimes are configurable through Alire's crate configuration variables.
 Refer to the target-specific READMEs above for details on what is configurable

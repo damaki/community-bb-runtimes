@@ -44,6 +44,7 @@ all_targets=(\
   "stm32f0xx" \
   "stm32g0xx" \
   "stm32g4xx" \
+  "stm32f411" \
 )
 
 profiles=("light" "light-tasking" "embedded")

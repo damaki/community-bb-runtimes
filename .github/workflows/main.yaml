@@ -58,7 +58,8 @@ jobs:
           "rp2350",
           "stm32f0xx",
           "stm32g0xx",
-          "stm32g4xx"
+          "stm32g4xx",
+          "stm32f411"
         ]
 
         # Only do per-target jobs on Windows. Linux is fast enough to do them

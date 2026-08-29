@@ -735,6 +735,61 @@ class Stm32G4(arm.cortexm.CortexM4F):
         self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="RAM")
 
 
+class Stm32F411(arm.cortexm.CortexM4F):
+    @property
+    def name(self):
+        return "stm32f411"
+
+    @property
+    def parent(self):
+        return ArmV7MArch_Patched
+
+    @property
+    def use_semihosting_io(self):
+        return True
+
+    @property
+    def loaders(self):
+        return ("ROM", "RAM")
+
+    @property
+    def system_ads(self):
+        return {
+            "light": "system-xi-arm.ads",
+            "light-tasking": "system-xi-cortexm4-sfp.ads",
+            "embedded": "system-xi-cortexm4-full.ads",
+        }
+
+    def __init__(self):
+        super(Stm32F411, self).__init__()
+
+        self.add_linker_script("stm32f411_src/ld/common-RAM.ld")
+        self.add_linker_script("stm32f411_src/ld/common-ROM.ld")
+
+        # Common source files
+        self.add_gnat_sources(
+            "bb-runtimes/arm/stm32/start-common.S",
+            "bb-runtimes/arm/stm32/start-ram.S",
+            "bb-runtimes/arm/stm32/start-rom.S",
+            "stm32f411_src/setup_pll.ads",
+            "stm32f411_src/setup_pll.adb",
+            "stm32f411_src/s-bbpara.ads",
+            "stm32f411_src/s-bbbopa.ads",
+            "stm32f411_src/s-bbmcpa.ads",
+            "stm32f411_src/svd/handler.S",
+            "stm32f411_src/svd/i-stm32.ads",
+            "stm32f411_src/svd/i-stm32-flash.ads",
+            "stm32f411_src/svd/i-stm32-pwr.ads",
+            "stm32f411_src/svd/i-stm32-rcc.ads",
+        )
+
+        # Unlike stm32f0xx/stm32g0xx/stm32g4xx, STM32F411 has a single
+        # sub-family, so there is no per-device interrupt name mapping here.
+        self.add_gnarl_sources(
+            "stm32f411_src/svd/a-intnam.ads",
+        )
+
+
 def build_configs(target):
     if target == "rp2040":
         return RP2040()
@@ -754,6 +809,8 @@ def build_configs(target):
         return Stm32G0()
     elif target == "stm32g4xx":
         return Stm32G4()
+    elif target == "stm32f411":
+        return Stm32F411()
     else:
         assert False, "unexpected target: %s" % target
 

@@ -1,0 +1,137 @@
+with "target_options.gpr";
+with "gnat_user/$(profile_underscored)_stm32f411_config.gpr";
+
+project Runtime_Build is
+
+  --  Unlike stm32f0xx/stm32g0xx/stm32g4xx, STM32F411 has no per-sub-family
+  --  source variants, so patch-runtime.py's generate_runtime_subdirs() never
+  --  creates a "runtimes/<name>" directory for this target (it only does so
+  --  when it finds subdirectories under gnat/ or gnarl/). Point the runtime
+  --  directly at the project directory instead, like the targets that also
+  --  have no such split (e.g. nrf52840, rp2350).
+
+  Runtime_Dir := Project'Project_Dir;
+
+  for Languages use ($(languages_list));
+  for Runtime ("Ada") use Runtime_Dir;
+  for Target use "arm-eabi";
+
+  for Library_Auto_Init use "False";
+  for Library_Name use "gnat";
+  for Library_Kind use Target_Options.Lib;
+  for Library_Options use Target_Options.LOPTIONS;
+
+   case Target_Options.Lib is
+      when "static" => null;
+      when "dynamic" =>
+         for Library_Version use
+            "libgnat-" & external ("$(profile_underscored_upper)_$(target_upper)_LIBRARY_VERSION", "") & ".so";
+         null;
+   end case;
+
+  for Library_Dir use Runtime_Dir & "/adalib";
+  for Object_Dir use Runtime_Dir & "/obj";
+
+  for Source_Dirs use ("gnat_user", "gnat");
+
+  GPR_Tool := external ("GPR_TOOL", "");
+  case GPR_Tool is
+    when "gnatprove" =>
+      for Externally_Built use "True";
+    when others =>
+      null;
+  end case;
+
+  Excluded_Sources := ();
+
+  --  Determine the ROM size based on the "flash memory size" part of the
+  --  STM32 part number (e.g. "E" in STM32F411CEU6).
+
+  ROM_Size := "512";
+
+  case $(profile_underscored)_Stm32f411_Config.MCU_Flash_Memory_Size is
+    when "C"    => ROM_Size := "256";
+    when "E"    => ROM_Size := "512";
+    when others => ROM_Size := "512";
+  end case;
+
+  --  STM32F411 has a single 128KB SRAM regardless of the part number.
+
+  RAM_Size := "128";
+
+  --  Select linker script
+
+  type Loaders is ("ROM", "RAM", "USER");
+  Loader : Loaders := external("LOADER", "ROM");
+
+  Linker_Switches := ();
+
+  case Loader is
+    when "ROM" =>
+      Linker_Switches := Linker_Switches &
+        ("-L" & Runtime_Build'Project_Dir & "/ld_user",
+         "-L" & Runtime_Build'Project_Dir & "/ld",
+         "-L" & Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
+         "-L" & Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
+         "-T" & "common-ROM.ld");
+
+    when "RAM" =>
+      Linker_Switches := Linker_Switches &
+        ("-L" & Runtime_Build'Project_Dir & "/ld_user",
+         "-L" & Runtime_Build'Project_Dir & "/ld",
+         "-L" & Runtime_Build'Project_Dir & "/ld/flash-" & ROM_Size,
+         "-L" & Runtime_Build'Project_Dir & "/ld/ram-" & RAM_Size,
+         "-T" & "common-RAM.ld");
+
+    when "USER" =>
+  end case;
+
+  package Naming is
+     for Spec_Suffix ("Asm_CPP") use ".inc";
+     for Spec ("Interfaces.STM32")       use "i-stm32.ads";
+     for Spec ("Interfaces.STM32.FLASH") use "i-stm32-flash.ads";
+     for Spec ("Interfaces.STM32.PWR")   use "i-stm32-pwr.ads";
+     for Spec ("Interfaces.STM32.RCC")   use "i-stm32-rcc.ads";
+  end Naming;
+
+  package Compiler is
+     for Default_Switches ("C") use Target_Options.ALL_CFLAGS;
+     for Default_Switches ("Ada") use Target_Options.ALL_ADAFLAGS & ("-gnaty-d");
+     for Default_Switches ("Asm_Cpp") use Target_Options.ASMFLAGS;
+
+     --  Some runtime files need to be compiled with debug info, so that gdb
+     --  is not blind.
+     for Switches ("s-traceb.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g")
+       & ("-fno-optimize-sibling-calls", "-fno-inline-functions-called-once");
+     for Switches ("a-except.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g", "-O1", "-fno-inline", "-fno-toplevel-reorder");
+     for Switches ("s-excdeb.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g", "-O0");
+     for Switches ("s-assert.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g");
+     for Switches ("a-tags.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-g");
+     for Switches ("raise-gcc.c") use Target_Options.ALL_CFLAGS
+       & ("-fexceptions");
+     for Switches ("unwind-sjlj-cert.c") use Target_Options.ALL_CFLAGS
+       & ("-fexceptions", "-Wno-error=unused-but-set-variable");
+
+     --  Don't inline System.Machine_Reset otherwise we can loose our common
+     --  exit system.
+
+     for Switches ("s-macres.adb") use Target_Options.ALL_ADAFLAGS
+       & ("-fno-inline");
+
+     --  Generate ada_target_properties to give target-specific information
+     --  to formal verification tools.
+
+     for Switches ("system.ads") use Target_Options.ALL_ADAFLAGS
+       & ("-gnatet=" & Runtime_Dir & "/ada_target_properties");
+  end Compiler;
+
+  package CodePeer is
+    for Excluded_Source_Files use ("a-chahan.adb", "a-strbou.adb", "a-strfix.adb", "a-strmap.adb", "a-strsea.adb", "a-strsup.adb", "g-io.adb", "i-c.adb", "s-arit32.adb", "s-arit64.adb", "s-casuti.adb", "s-exnint.adb", "s-exnlli.adb", "s-exnllli.ads", "s-expint.adb", "s-explli.adb", "s-expllli.ads", "s-explllu.ads", "s-expllu.adb", "s-expmod.adb", "s-expuns.adb", "s-gearop.adb", "s-imgboo.adb", "s-imgint.adb", "s-imglli.adb", "s-imgllli.ads", "s-imglllu.ads", "s-imgllu.adb", "s-imguns.adb", "s-valboo.adb", "s-valint.adb", "s-vallli.adb", "s-valllli.ads", "s-vallllu.ads", "s-valllu.adb", "s-valuns.adb", "s-valuti.adb", "s-veboop.adb", "s-widint.ads", "s-widlli.adb", "s-widllli.ads", "s-widlllu.ads", "s-widllu.adb", "s-widuns.ads");
+  end CodePeer;
+
+end Runtime_Build;
