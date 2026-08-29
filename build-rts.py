@@ -121,6 +121,12 @@ class RP2040(arm.cortexm.CortexM0P):
             "rp2040_src/a-intnam-2.ads",
         )
 
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
+
 
 class RP2350(arm.cortexm.CortexM33F):
     @property
@@ -201,6 +207,12 @@ class RP2350(arm.cortexm.CortexM33F):
             "rp2350_src/a-intnam-2.ads",
         )
 
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
+
 
 class NRF52(arm.cortexm.ArmV7MTarget):
     @property
@@ -263,6 +275,12 @@ class NRF52(arm.cortexm.ArmV7MTarget):
             "nrf52_src/s-bbbosu.adb",
             "src/s-bcpcst__pendsv.adb",
         )
+
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
 
 
 class NRF52833(NRF52):
@@ -446,6 +464,12 @@ class NRF54LApp(arm.cortexm.CortexM33F):
                 f"nrf54l_src/svd/a-intnam__{device}.ads",
             )
 
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
+
 
 class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
     @property
@@ -563,6 +587,13 @@ class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
                 f"stm32f0_src/stm32f0x{sub_family_minor}/svd/a-intnam_{sub_family_minor}.ads",
             )
 
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="RAM")
+
 
 class Stm32G0(arm.cortexm.CortexM0P):
     @property
@@ -623,6 +654,13 @@ class Stm32G0(arm.cortexm.CortexM0P):
                 f"{device}/a-intnam.ads",
                 f"stm32g0_src/svd/a-intnam-{device}.ads",
             )
+
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="RAM")
 
 
 class Stm32G4(arm.cortexm.CortexM4F):
@@ -688,6 +726,13 @@ class Stm32G4(arm.cortexm.CortexM4F):
                 f"{device}/a-intnam.ads",
                 f"stm32g4_src/svd/a-intnam-{device}.ads",
             )
+
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="RAM")
 
 
 def build_configs(target):
