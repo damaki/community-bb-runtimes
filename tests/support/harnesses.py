@@ -160,7 +160,8 @@ project Test is
     Runtime_Linker_Switches := {runtime_linker_switches};
 
     package Linker is
-        for Switches ("Ada") use Runtime_Linker_Switches & ("-Wl,--gc-sections");
+        for Switches ("Ada") use Runtime_Linker_Switches &
+          ("-Wl,--gc-sections", "-Wl,--fatal-warnings");
     end Linker;
 end Test;
 """
