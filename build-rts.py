@@ -735,10 +735,10 @@ class Stm32G4(arm.cortexm.CortexM4F):
         self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="RAM")
 
 
-class Stm32F411(arm.cortexm.CortexM4F):
+class Stm32F4(arm.cortexm.CortexM4F):
     @property
     def name(self):
-        return "stm32f411"
+        return "stm32f4xx"
 
     @property
     def parent(self):
@@ -761,33 +761,77 @@ class Stm32F411(arm.cortexm.CortexM4F):
         }
 
     def __init__(self):
-        super(Stm32F411, self).__init__()
+        super(Stm32F4, self).__init__()
 
-        self.add_linker_script("stm32f411_src/ld/common-RAM.ld")
-        self.add_linker_script("stm32f411_src/ld/common-ROM.ld")
+        self.add_linker_script("stm32f4_src/ld/common-RAM.ld")
+        self.add_linker_script("stm32f4_src/ld/common-ROM.ld")
 
-        # Common source files
+        # Common source files, shared by all MCU_Sub_Family variants
         self.add_gnat_sources(
             "bb-runtimes/arm/stm32/start-common.S",
             "bb-runtimes/arm/stm32/start-ram.S",
             "bb-runtimes/arm/stm32/start-rom.S",
-            "stm32f411_src/setup_pll.ads",
-            "stm32f411_src/setup_pll.adb",
-            "stm32f411_src/s-bbpara.ads",
-            "stm32f411_src/s-bbbopa.ads",
-            "stm32f411_src/s-bbmcpa.ads",
-            "stm32f411_src/svd/handler.S",
-            "stm32f411_src/svd/i-stm32.ads",
-            "stm32f411_src/svd/i-stm32-flash.ads",
-            "stm32f411_src/svd/i-stm32-pwr.ads",
-            "stm32f411_src/svd/i-stm32-rcc.ads",
+            "stm32f4_src/setup_pll.ads",
+            "stm32f4_src/setup_pll.adb",
+            "stm32f4_src/s-bbpara.ads",
+            "stm32f4_src/s-bbbopa.ads",
         )
 
-        # Unlike stm32f0xx/stm32g0xx/stm32g4xx, STM32F411 has a single
-        # sub-family, so there is no per-device interrupt name mapping here.
-        self.add_gnarl_sources(
-            "stm32f411_src/svd/a-intnam.ads",
-        )
+        # Source files that are specific to each MCU_Sub_Family variant.
+        # Only "F411" is supported so far; more variants may be added here
+        # later, following the same pattern as stm32f0xx/stm32g0xx/stm32g4xx.
+        for sub_family in ["F411"]:
+            sub_family_dir = f"stm32f4_src/stm32{sub_family.lower()}"
+
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/s-bbmcpa.ads",
+                f"{sub_family_dir}/s-bbmcpa.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/i-stm32.ads",
+                f"{sub_family_dir}/svd/i-stm32.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/i-stm32-flash.ads",
+                f"{sub_family_dir}/svd/i-stm32-flash.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/i-stm32-pwr.ads",
+                f"{sub_family_dir}/svd/i-stm32-pwr.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/i-stm32-rcc.ads",
+                f"{sub_family_dir}/svd/i-stm32-rcc.ads",
+            )
+            self.add_source_alias(
+                "gnarl",
+                f"{sub_family}/a-intnam.ads",
+                f"{sub_family_dir}/svd/a-intnam.ads",
+            )
+
+            # handler.S (the interrupt vector table) is compiled as part of
+            # the "gnat" library, not "gnarl": Ravenscar_Build only declares
+            # the "Ada" language, so an Asm_Cpp source placed under "gnarl"
+            # would silently never be compiled, leaving "__vectors" undefined
+            # at link time. This matches how stm32f0xx/stm32g4xx place their
+            # own handler.S.
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/handler.S",
+                f"{sub_family_dir}/svd/handler.S",
+            )
+
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="RAM")
 
 
 def build_configs(target):
@@ -809,8 +853,8 @@ def build_configs(target):
         return Stm32G0()
     elif target == "stm32g4xx":
         return Stm32G4()
-    elif target == "stm32f411":
-        return Stm32F411()
+    elif target == "stm32f4xx":
+        return Stm32F4()
     else:
         assert False, "unexpected target: %s" % target
 

@@ -44,7 +44,7 @@ pragma Restrictions (No_Elaboration_Code);
 with System.BB.Board_Parameters;
 with System.BB.MCU_Parameters;
 
-with STM32F411_Runtime_Config;
+with STM32F4xx_Runtime_Config;
 
 package System.BB.Parameters is
    pragma Preelaborate (System.BB.Parameters);
@@ -101,7 +101,7 @@ package System.BB.Parameters is
    ------------
 
    Interrupt_Stack_Size : constant :=
-     STM32F411_Runtime_Config.Interrupt_Stack_Size;
+     STM32F4xx_Runtime_Config.Interrupt_Stack_Size;
    --  Size of each of the interrupt stacks in bytes. While there nominally is
    --  an interrupt stack per interrupt priority, the entire space is used as a
    --  single stack.

@@ -12,5 +12,5 @@ src = "runtime_build.gpr.in"
 dst = "runtime_build.gpr"
 
 [[template]]
-src = "stm32f411_runtime_config.ads.in"
-dst = "gnat_user/stm32f411_runtime_config.ads"
+src = "stm32f4xx_runtime_config.ads.in"
+dst = "gnat_user/stm32f4xx_runtime_config.ads"

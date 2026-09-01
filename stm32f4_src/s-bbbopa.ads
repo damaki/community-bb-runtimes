@@ -33,9 +33,9 @@
 ------------------------------------------------------------------------------
 pragma Restrictions (No_Elaboration_Code);
 
---  This package defines board parameters for the stm32f411
+--  This package defines board parameters for the STM32F4 family
 
-with STM32F411_Runtime_Config;
+with STM32F4xx_Runtime_Config;
 
 package System.BB.Board_Parameters is
    pragma Pure;
@@ -45,7 +45,7 @@ package System.BB.Board_Parameters is
    --------------------
 
    HSI_Freq : constant := 16_000_000;
-   HSE_Freq : constant := STM32F411_Runtime_Config.HSE_Clock_Frequency;
+   HSE_Freq : constant := STM32F4xx_Runtime_Config.HSE_Clock_Frequency;
    LSE_Freq : constant := 32_768;
    LSI_Freq : constant := 32_000; --  varies 17 .. 47 kHz, see datasheet
 
@@ -58,58 +58,58 @@ package System.BB.Board_Parameters is
    type PLL_Q_Range     is range 1_000_000 ..   48_000_000;
 
    PLL_IN_Freq : constant :=
-     (case STM32F411_Runtime_Config.PLL_Src is
-        when STM32F411_Runtime_Config.HSI => HSI_Freq,
-        when STM32F411_Runtime_Config.HSE => HSE_Freq);
+     (case STM32F4xx_Runtime_Config.PLL_Src is
+        when STM32F4xx_Runtime_Config.HSI => HSI_Freq,
+        when STM32F4xx_Runtime_Config.HSE => HSE_Freq);
 
    PLL_VCO_Freq : constant :=
-     (PLL_IN_Freq * STM32F411_Runtime_Config.PLL_N_Mul)
-     / STM32F411_Runtime_Config.PLL_M_Div;
+     (PLL_IN_Freq * STM32F4xx_Runtime_Config.PLL_N_Mul)
+     / STM32F4xx_Runtime_Config.PLL_M_Div;
 
    PLL_P_Freq : constant :=
      PLL_VCO_Freq /
-       (case STM32F411_Runtime_Config.PLL_P_Div is
-          when STM32F411_Runtime_Config.DIV2 => 2,
-          when STM32F411_Runtime_Config.DIV4 => 4,
-          when STM32F411_Runtime_Config.DIV6 => 6,
-          when STM32F411_Runtime_Config.DIV8 => 8);
+       (case STM32F4xx_Runtime_Config.PLL_P_Div is
+          when STM32F4xx_Runtime_Config.DIV2 => 2,
+          when STM32F4xx_Runtime_Config.DIV4 => 4,
+          when STM32F4xx_Runtime_Config.DIV6 => 6,
+          when STM32F4xx_Runtime_Config.DIV8 => 8);
 
    PLL_Q_Freq : constant :=
-     PLL_VCO_Freq / STM32F411_Runtime_Config.PLL_Q_Div;
+     PLL_VCO_Freq / STM32F4xx_Runtime_Config.PLL_Q_Div;
 
    SYSCLK_Freq : constant :=
-     (case STM32F411_Runtime_Config.SYSCLK_Src is
-        when STM32F411_Runtime_Config.HSE => HSE_Freq,
-        when STM32F411_Runtime_Config.PLL => PLL_P_Freq,
-        when STM32F411_Runtime_Config.HSI => HSI_Freq);
+     (case STM32F4xx_Runtime_Config.SYSCLK_Src is
+        when STM32F4xx_Runtime_Config.HSE => HSE_Freq,
+        when STM32F4xx_Runtime_Config.PLL => PLL_P_Freq,
+        when STM32F4xx_Runtime_Config.HSI => HSI_Freq);
 
    HCLK_Freq : constant :=
-     SYSCLK_Freq / (case STM32F411_Runtime_Config.AHB_Pre is
-                      when STM32F411_Runtime_Config.DIV1   => 1,
-                      when STM32F411_Runtime_Config.DIV2   => 2,
-                      when STM32F411_Runtime_Config.DIV4   => 4,
-                      when STM32F411_Runtime_Config.DIV8   => 8,
-                      when STM32F411_Runtime_Config.DIV16  => 16,
-                      when STM32F411_Runtime_Config.DIV64  => 64,
-                      when STM32F411_Runtime_Config.DIV128 => 128,
-                      when STM32F411_Runtime_Config.DIV256 => 256,
-                      when STM32F411_Runtime_Config.DIV512 => 512);
+     SYSCLK_Freq / (case STM32F4xx_Runtime_Config.AHB_Pre is
+                      when STM32F4xx_Runtime_Config.DIV1   => 1,
+                      when STM32F4xx_Runtime_Config.DIV2   => 2,
+                      when STM32F4xx_Runtime_Config.DIV4   => 4,
+                      when STM32F4xx_Runtime_Config.DIV8   => 8,
+                      when STM32F4xx_Runtime_Config.DIV16  => 16,
+                      when STM32F4xx_Runtime_Config.DIV64  => 64,
+                      when STM32F4xx_Runtime_Config.DIV128 => 128,
+                      when STM32F4xx_Runtime_Config.DIV256 => 256,
+                      when STM32F4xx_Runtime_Config.DIV512 => 512);
 
    APB1_Freq : constant :=
-     HCLK_Freq / (case STM32F411_Runtime_Config.APB1_Pre is
-                    when STM32F411_Runtime_Config.DIV1  => 1,
-                    when STM32F411_Runtime_Config.DIV2  => 2,
-                    when STM32F411_Runtime_Config.DIV4  => 4,
-                    when STM32F411_Runtime_Config.DIV8  => 8,
-                    when STM32F411_Runtime_Config.DIV16 => 16);
+     HCLK_Freq / (case STM32F4xx_Runtime_Config.APB1_Pre is
+                    when STM32F4xx_Runtime_Config.DIV1  => 1,
+                    when STM32F4xx_Runtime_Config.DIV2  => 2,
+                    when STM32F4xx_Runtime_Config.DIV4  => 4,
+                    when STM32F4xx_Runtime_Config.DIV8  => 8,
+                    when STM32F4xx_Runtime_Config.DIV16 => 16);
 
    APB2_Freq : constant :=
-     HCLK_Freq / (case STM32F411_Runtime_Config.APB2_Pre is
-                    when STM32F411_Runtime_Config.DIV1  => 1,
-                    when STM32F411_Runtime_Config.DIV2  => 2,
-                    when STM32F411_Runtime_Config.DIV4  => 4,
-                    when STM32F411_Runtime_Config.DIV8  => 8,
-                    when STM32F411_Runtime_Config.DIV16 => 16);
+     HCLK_Freq / (case STM32F4xx_Runtime_Config.APB2_Pre is
+                    when STM32F4xx_Runtime_Config.DIV1  => 1,
+                    when STM32F4xx_Runtime_Config.DIV2  => 2,
+                    when STM32F4xx_Runtime_Config.DIV4  => 4,
+                    when STM32F4xx_Runtime_Config.DIV8  => 8,
+                    when STM32F4xx_Runtime_Config.DIV16 => 16);
 
    Main_Clock_Frequency : constant Positive := HCLK_Freq;
 

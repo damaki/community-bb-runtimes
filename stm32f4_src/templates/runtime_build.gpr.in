@@ -1,16 +1,9 @@
 with "target_options.gpr";
-with "gnat_user/$(profile_underscored)_stm32f411_config.gpr";
+with "gnat_user/$(profile_underscored)_stm32f4xx_config.gpr";
 
 project Runtime_Build is
 
-  --  Unlike stm32f0xx/stm32g0xx/stm32g4xx, STM32F411 has no per-sub-family
-  --  source variants, so patch-runtime.py's generate_runtime_subdirs() never
-  --  creates a "runtimes/<name>" directory for this target (it only does so
-  --  when it finds subdirectories under gnat/ or gnarl/). Point the runtime
-  --  directly at the project directory instead, like the targets that also
-  --  have no such split (e.g. nrf52840, rp2350).
-
-  Runtime_Dir := Project'Project_Dir;
+  Runtime_Dir := Project'Project_Dir & "/runtimes/" & $(profile_underscored)_Stm32f4xx_Config.MCU_Sub_Family;
 
   for Languages use ($(languages_list));
   for Runtime ("Ada") use Runtime_Dir;
@@ -32,7 +25,10 @@ project Runtime_Build is
   for Library_Dir use Runtime_Dir & "/adalib";
   for Object_Dir use Runtime_Dir & "/obj";
 
-  for Source_Dirs use ("gnat_user", "gnat");
+  for Source_Dirs use
+    ("gnat_user",
+     "gnat",
+     "gnat/" & $(profile_underscored)_Stm32f4xx_Config.MCU_Sub_Family);
 
   GPR_Tool := external ("GPR_TOOL", "");
   case GPR_Tool is
@@ -49,15 +45,22 @@ project Runtime_Build is
 
   ROM_Size := "512";
 
-  case $(profile_underscored)_Stm32f411_Config.MCU_Flash_Memory_Size is
+  case $(profile_underscored)_Stm32f4xx_Config.MCU_Flash_Memory_Size is
     when "C"    => ROM_Size := "256";
     when "E"    => ROM_Size := "512";
     when others => ROM_Size := "512";
   end case;
 
-  --  STM32F411 has a single 128KB SRAM regardless of the part number.
+  --  Determine the RAM size based on the sub-family part of the STM32 part
+  --  number.
 
   RAM_Size := "128";
+
+  case $(profile_underscored)_Stm32f4xx_Config.MCU_Sub_Family is
+     when "F411" =>
+        --  STM32F411 has a single 128KB SRAM regardless of the part number.
+        RAM_Size := "128";
+  end case;
 
   --  Select linker script
 

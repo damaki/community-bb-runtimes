@@ -33,13 +33,16 @@ $(project_file_withs)
 The runtime is configurable via Alire crate configuration variables.
 See the project website for full details of the available options.
 
-By default, the runtime is configured for the STM32F411CEU6 (48-pin, 512KB
-flash -- e.g. the "WeAct BlackPill" board). If you are using a different
-MCU, then you will need to configure the runtime by adding the following to
-your `alire.toml`. For example, to configure the runtime for the
-STM32F411RCT6 (64-pin, 256KB flash):
+This runtime crate supports the whole STM32F4 family, one MCU sub-family at
+a time. By default, the runtime is configured for the STM32F411 sub-family,
+targeting the STM32F411CEU6 (48-pin, 512KB flash -- e.g. the "WeAct
+BlackPill" board). If you are using a different MCU, then you will need to
+configure the runtime by adding the following to your `alire.toml`. For
+example, to configure the runtime for the STM32F411RCT6 (64-pin, 256KB
+flash):
 ```toml
 [configuration.values]
+$(profile_underscored)_$(target).MCU_Sub_Family         = "F411"
 $(profile_underscored)_$(target).MCU_Pin_Count          = "R"
 $(profile_underscored)_$(target).MCU_Flash_Memory_Size  = "C"
 ```
@@ -93,7 +96,7 @@ authors = ["AdaCore", "Daniel King"]
 maintainers = ["Daniel King <damaki.gh@gmail.com>"]
 maintainers-logins = ["damaki"]
 licenses = "GPL-3.0-or-later WITH GCC-exception-3.1"
-tags = ["embedded", "runtime", "stm32f411"]
+tags = ["embedded", "runtime", "stm32f4", "stm32f411"]
 website = "https://github.com/damaki/community-bb-runtimes"
 
 project-files = $(project_files_list)
@@ -103,6 +106,7 @@ generate_c = false
 output_dir = "gnat_user"
 
 [configuration.variables]
+MCU_Sub_Family = { type = "Enum", values = ["F411"], default = "F411" }
 MCU_Pin_Count = { type = "Enum", values = ["C", "R", "V"], default = "C" }
 MCU_Flash_Memory_Size = { type = "String", default = "E" }
 

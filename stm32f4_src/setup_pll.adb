@@ -32,14 +32,21 @@ pragma Suppress (All_Checks);
 --  clocks.
 --
 --  The RCC_Periph/FLASH_Periph/PWR_Periph field names and types used below
---  have been checked against svd/i-stm32-rcc.ads, svd/i-stm32-flash.ads and
---  svd/i-stm32-pwr.ads (currently sourced from the vendored STM32F40x
---  definitions, which share the same RCC/FLASH/PWR register layout as
---  STM32F411 for the fields used here). If svd/i-stm32*.ads are later
---  regenerated directly from the STM32F411 SVD via svd2ada, double check
---  that field names/types (e.g. whether Bit fields keep their raw "0"/"1"
---  literal style, or gain named enumeration literals like some other
---  targets' generated files do) still match what's used here.
+--  have been checked against stm32f411/svd/i-stm32-rcc.ads,
+--  stm32f411/svd/i-stm32-flash.ads and stm32f411/svd/i-stm32-pwr.ads
+--  (currently sourced from the vendored STM32F40x definitions, which share
+--  the same RCC/FLASH/PWR register layout as STM32F411 for the fields used
+--  here). If those files are later regenerated directly from the STM32F411
+--  SVD via svd2ada, double check that field names/types (e.g. whether Bit
+--  fields keep their raw "0"/"1" literal style, or gain named enumeration
+--  literals like some other targets' generated files do) still match what's
+--  used here.
+--
+--  This procedure is shared by every MCU_Sub_Family. When a sub-family other
+--  than "F411" is added, revisit the assumptions above (and the flash
+--  latency table below) against that sub-family's own svd/i-stm32-*.ads and
+--  reference manual, since register layout and wait-state tables can differ
+--  across the STM32F4 family.
 
 with Interfaces.STM32;           use Interfaces.STM32;
 with Interfaces.STM32.FLASH;     use Interfaces.STM32.FLASH;
@@ -48,13 +55,13 @@ with Interfaces.STM32.RCC;       use Interfaces.STM32.RCC;
 
 with System.BB.Board_Parameters; use System.BB.Board_Parameters;
 
-with STM32F411_Runtime_Config;
+with STM32F4xx_Runtime_Config;
 
 procedure Setup_Pll is
    procedure Initialize_Clocks;
    procedure Reset_Clocks;
 
-   package Config renames STM32F411_Runtime_Config;
+   package Config renames STM32F4xx_Runtime_Config;
 
    use type Config.PLL_Src_Kind;
    use type Config.SYSCLK_Src_Kind;
