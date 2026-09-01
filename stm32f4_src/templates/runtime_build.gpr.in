@@ -41,13 +41,15 @@ project Runtime_Build is
   Excluded_Sources := ();
 
   --  Determine the ROM size based on the "flash memory size" part of the
-  --  STM32 part number (e.g. "E" in STM32F411CEU6).
+  --  STM32 part number (e.g. "E" in STM32F411CEU6, "E" in STM32F407VET6,
+  --  or "G" in STM32F407VGT6).
 
   ROM_Size := "512";
 
   case $(profile_underscored)_Stm32f4xx_Config.MCU_Flash_Memory_Size is
     when "C"    => ROM_Size := "256";
     when "E"    => ROM_Size := "512";
+    when "G"    => ROM_Size := "1024";
     when others => ROM_Size := "512";
   end case;
 
@@ -59,6 +61,12 @@ project Runtime_Build is
   case $(profile_underscored)_Stm32f4xx_Config.MCU_Sub_Family is
      when "F411" =>
         --  STM32F411 has a single 128KB SRAM regardless of the part number.
+        RAM_Size := "128";
+
+     when "F407" | "F417" =>
+        --  STM32F405/407/415/417 have a 128KB main SRAM, plus a separate
+        --  64KB CCM (Core Coupled Memory) region that this runtime does not
+        --  currently expose as a usable memory region.
         RAM_Size := "128";
   end case;
 

@@ -47,6 +47,22 @@ $(profile_underscored)_$(target).MCU_Pin_Count          = "R"
 $(profile_underscored)_$(target).MCU_Flash_Memory_Size  = "C"
 ```
 
+Or to configure the runtime for the STM32F407VET6 (100-pin, 512KB flash).
+Note that STM32F405/407/415/417 have lower APB1/APB2 frequency limits (42 /
+84 MHz) than STM32F411 (50 / 100 MHz), so the default clock tree (which
+targets STM32F411's limits) must be paired with different APB prescalers:
+```toml
+[configuration.values]
+$(profile_underscored)_$(target).MCU_Sub_Family         = "F407"
+$(profile_underscored)_$(target).MCU_Pin_Count          = "V"
+$(profile_underscored)_$(target).MCU_Flash_Memory_Size  = "E"
+
+# APB1_Pre = DIV4 and APB2_Pre = DIV2 keep APB1/APB2 within their limits
+# (25 MHz / 50 MHz) at the default 100 MHz HCLK.
+$(profile_underscored)_$(target).APB1_Pre = "DIV4"
+$(profile_underscored)_$(target).APB2_Pre = "DIV2"
+```
+
 By default, the runtime configures the clock tree for a 100 MHz system clock
 from the high-speed internal (HSI) oscillator, using the PLL. If you want a
 different clock configuration, then use the crate configuration variables to
@@ -106,8 +122,8 @@ generate_c = false
 output_dir = "gnat_user"
 
 [configuration.variables]
-MCU_Sub_Family = { type = "Enum", values = ["F411"], default = "F411" }
-MCU_Pin_Count = { type = "Enum", values = ["C", "R", "V"], default = "C" }
+MCU_Sub_Family = { type = "Enum", values = ["F411", "F407", "F417"], default = "F411" }
+MCU_Pin_Count = { type = "Enum", values = ["C", "R", "V", "Z", "I"], default = "C" }
 MCU_Flash_Memory_Size = { type = "String", default = "E" }
 
 LSI_Enabled = { type = "Boolean", default = true }
@@ -117,9 +133,9 @@ HSE_Bypass = { type = "Boolean", default = false }
 HSE_Clock_Frequency = { type = "Integer", first = 4000000, last = 26000000, default = 25000000 }
 PLL_Src = { type = "Enum", values = ["HSI", "HSE"], default = "HSI" }
 PLL_M_Div = { type = "Integer", first = 2, last = 63, default = 8 }
-PLL_N_Mul = { type = "Integer", first = 50, last = 432, default = 100 }
-PLL_P_Div = { type = "Enum", values = ["DIV2", "DIV4", "DIV6", "DIV8"], default = "DIV2" }
-PLL_Q_Div = { type = "Integer", first = 2, last = 15, default = 5 }
+PLL_N_Mul = { type = "Integer", first = 50, last = 432, default = 168 }
+PLL_P_Div = { type = "Enum", values = ["DIV2", "DIV4", "DIV6", "DIV8"], default = "DIV4" }
+PLL_Q_Div = { type = "Integer", first = 2, last = 15, default = 7 }
 SYSCLK_Src = { type = "Enum", values = ["HSI", "HSE", "PLL"], default = "PLL" }
 AHB_Pre = { type = "Enum", values = ["DIV1", "DIV2", "DIV4", "DIV8", "DIV16", "DIV64", "DIV128", "DIV256", "DIV512"], default = "DIV1" }
 APB1_Pre = { type = "Enum", values = ["DIV1", "DIV2", "DIV4", "DIV8", "DIV16"], default = "DIV2" }

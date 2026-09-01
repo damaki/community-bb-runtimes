@@ -778,10 +778,19 @@ class Stm32F4(arm.cortexm.CortexM4F):
         )
 
         # Source files that are specific to each MCU_Sub_Family variant.
-        # Only "F411" is supported so far; more variants may be added here
+        # STM32F405/407/415/417 share the same RCC/FLASH/interrupt layout
+        # (they differ only by the presence of a CRYP/HASH peripheral, which
+        # this runtime doesn't touch), so "F407" and "F417" both reuse the
+        # "stm32f4x7" source directory. More variants may be added here
         # later, following the same pattern as stm32f0xx/stm32g0xx/stm32g4xx.
-        for sub_family in ["F411"]:
-            sub_family_dir = f"stm32f4_src/stm32{sub_family.lower()}"
+        sub_family_dirs = {
+            "F411": "stm32f411",
+            "F407": "stm32f4x7",
+            "F417": "stm32f4x7",
+        }
+
+        for sub_family, dir_name in sub_family_dirs.items():
+            sub_family_dir = f"stm32f4_src/{dir_name}"
 
             self.add_source_alias(
                 "gnat",

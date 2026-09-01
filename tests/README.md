@@ -337,6 +337,7 @@ Testing on STM32 is done on the following boards:
 | `stm32f0xx` | Nucleo-F072RB |
 | `stm32g0xx` | Nucleo-G0B1RE |
 | `stm32g4xx` | Nucleo-G474RE |
+| `stm32f4xx` | STM32 F4VE    |
 
 The following software is also required to be installed and available on your
 system PATH:

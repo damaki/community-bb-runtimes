@@ -49,6 +49,18 @@ additional_test_configs = [
             {"Time_Base_GRTC_CCn": 5},
         ],
     },
+    {  # Test the STM32F4 sub-families other than the default (F411).
+        # STM32F405/407/415/417 have lower APB1/APB2 limits than STM32F411,
+        # so the default APB prescalers (tuned for F411) must be overridden
+        # too, or the runtime rejects the configuration at compile time.
+        "targets": ["stm32f4xx"],
+        "profiles": ["light", "light_tasking", "embedded"],
+        "configuration.values": [
+            {
+             "MCU_Sub_Family": "F407"
+            },
+        ],
+    },
 ]
 
 REPO_ROOT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent

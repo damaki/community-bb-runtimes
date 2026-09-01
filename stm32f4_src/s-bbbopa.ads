@@ -54,8 +54,16 @@ package System.BB.Board_Parameters is
 
    type PLL_Input_Range is range 1_000_000 ..   2_000_000;
    type PLL_VCO_Range   is range 100_000_000 .. 432_000_000;
-   type PLL_P_Range     is range 24_000_000 ..  100_000_000;
    type PLL_Q_Range     is range 1_000_000 ..   48_000_000;
+
+   --  The PLL P output (SYSCLK) is capped at 100 MHz on STM32F411 (RM0383),
+   --  but 168 MHz on STM32F405/407/415/417 (RM0090, no over-drive).
+
+   type PLL_P_Range is range 24_000_000 ..
+     (case STM32F4xx_Runtime_Config.MCU_Sub_Family is
+        when STM32F4xx_Runtime_Config.F411 => 100_000_000,
+        when STM32F4xx_Runtime_Config.F407
+           | STM32F4xx_Runtime_Config.F417 => 168_000_000);
 
    PLL_IN_Freq : constant :=
      (case STM32F4xx_Runtime_Config.PLL_Src is

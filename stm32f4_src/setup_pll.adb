@@ -2,7 +2,7 @@
 --                                                                          --
 --                         GNAT RUN-TIME COMPONENTS                         --
 --                                                                          --
---          Copyright (C) 2012-2025, Free Software Foundation, Inc.         --
+--          Copyright (C) 2012-2026, Free Software Foundation, Inc.         --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -31,22 +31,9 @@ pragma Suppress (All_Checks);
 --  This initialization procedure mainly initializes the PLL and all derived
 --  clocks.
 --
---  The RCC_Periph/FLASH_Periph/PWR_Periph field names and types used below
---  have been checked against stm32f411/svd/i-stm32-rcc.ads,
---  stm32f411/svd/i-stm32-flash.ads and stm32f411/svd/i-stm32-pwr.ads
---  (currently sourced from the vendored STM32F40x definitions, which share
---  the same RCC/FLASH/PWR register layout as STM32F411 for the fields used
---  here). If those files are later regenerated directly from the STM32F411
---  SVD via svd2ada, double check that field names/types (e.g. whether Bit
---  fields keep their raw "0"/"1" literal style, or gain named enumeration
---  literals like some other targets' generated files do) still match what's
---  used here.
---
---  This procedure is shared by every MCU_Sub_Family. When a sub-family other
---  than "F411" is added, revisit the assumptions above (and the flash
---  latency table below) against that sub-family's own svd/i-stm32-*.ads and
---  reference manual, since register layout and wait-state tables can differ
---  across the STM32F4 family.
+--  This procedure is shared by every MCU_Sub_Family; per-sub-family
+--  differences (flash wait-state table, APB1/APB2 limits, PLL P output
+--  range) are selected below via Config.MCU_Sub_Family.
 
 with Interfaces.STM32;           use Interfaces.STM32;
 with Interfaces.STM32.FLASH;     use Interfaces.STM32.FLASH;
@@ -84,8 +71,8 @@ procedure Setup_Pll is
    LSE_Enabled : constant Boolean := Config.LSE_Enabled;
 
    --  Flash latency, assuming VDD in the range 2.7 .. 3.6V. See RM0383
-   --  Table 10 "Number of wait states according to CPU clock (HCLK)
-   --  frequency".
+   --  Table 10 (STM32F411) / RM0090 Table 11 (STM32F405/407/415/417)
+   --  "Number of wait states according to CPU clock (HCLK) frequency".
    --
    --  TODO(stm32f411): this table is written from general STM32F4 datasheet
    --  knowledge (it has not been cross-checked against RM0383's actual
@@ -93,10 +80,49 @@ procedure Setup_Pll is
    --  datasheet before relying on it for a production build.
 
    FLASH_Latency : constant :=
-     (if    SYSCLK_Freq <= 30_000_000 then 0
-      elsif SYSCLK_Freq <= 60_000_000 then 1
-      elsif SYSCLK_Freq <= 90_000_000 then 2
-      else 3);
+     (case Config.MCU_Sub_Family is
+        when Config.F411 =>
+          (if    SYSCLK_Freq <= 30_000_000 then 0
+           elsif SYSCLK_Freq <= 60_000_000 then 1
+           elsif SYSCLK_Freq <= 90_000_000 then 2
+           else 3),
+        when Config.F407 | Config.F417 =>
+          (if    SYSCLK_Freq <= 30_000_000  then 0
+           elsif SYSCLK_Freq <= 60_000_000  then 1
+           elsif SYSCLK_Freq <= 90_000_000  then 2
+           elsif SYSCLK_Freq <= 120_000_000 then 3
+           elsif SYSCLK_Freq <= 150_000_000 then 4
+           else 5));
+
+   --  Regulator voltage scaling output selection
+   --  F411: See RM0383 section 5.1.3, PWR_CR.VOS[1:0]:
+   --    01 => Scale 3, SYSCLK <= 64 MHz
+   --    10 => Scale 2, SYSCLK <= 84 MHz (reset value)
+   --    11 => Scale 1, SYSCLK <= 100 MHz
+   --  F407: See DS8626, Table 14
+
+   Voltage_Scaling : constant :=
+     (case Config.MCU_Sub_Family is
+        when Config.F411 =>
+          (if    SYSCLK_Freq <= 64_000_000 then 1
+           elsif SYSCLK_Freq <= 84_000_000 then 2
+           else 3),
+        when Config.F407 | Config.F417 =>
+          (if SYSCLK_Freq <= 144_000_000 then 0
+           else 1));
+
+   --  Maximum APB1/APB2 frequencies. See RM0383 section 3.3 (STM32F411)
+   --  and RM0090 section 3.3 (STM32F405/407/415/417).
+
+   APB1_Max_Freq : constant :=
+     (case Config.MCU_Sub_Family is
+        when Config.F411             => 50_000_000,
+        when Config.F407 | Config.F417 => 42_000_000);
+
+   APB2_Max_Freq : constant :=
+     (case Config.MCU_Sub_Family is
+        when Config.F411             => 100_000_000,
+        when Config.F407 | Config.F417 => 84_000_000);
 
    -----------------------
    -- Initialize_Clocks --
@@ -122,7 +148,8 @@ procedure Setup_Pll is
       pragma Compile_Time_Error
         (Activate_PLL and then PLL_P_Freq not in PLL_P_Range,
          "Invalid PLL configuration. PLL P output frequency (SYSCLK) must"
-           & " be in the range 24 .. 100 MHz");
+           & " be in the range 24 .. 100 MHz for F411, or 24 .. 168 MHz"
+           & " for F407/F417");
 
       pragma Compile_Time_Error
         (Activate_PLL and then PLL_Q_Freq not in PLL_Q_Range,
@@ -130,28 +157,21 @@ procedure Setup_Pll is
            & " range 1 .. 48 MHz");
 
       pragma Compile_Time_Error
-        (APB1_Freq > 50_000_000,
-         "Invalid configuration. APB1 frequency must not exceed 50 MHz");
+        (APB1_Freq > APB1_Max_Freq,
+         "Invalid configuration. APB1 frequency must not exceed 50 MHz"
+           & " (F411) or 42 MHz (F407/F417)");
 
       pragma Compile_Time_Error
-        (APB2_Freq > 100_000_000,
-         "Invalid configuration. APB2 frequency must not exceed 100 MHz");
+        (APB2_Freq > APB2_Max_Freq,
+         "Invalid configuration. APB2 frequency must not exceed 100 MHz"
+           & " (F411) or 84 MHz (F407/F417)");
 
       SW_Value : CFGR_SW_Field;
 
    begin
 
-      if not HSE_Enabled then
+      if HSE_Enabled then
          --  Setup internal clock and wait for HSI stabilisation.
-
-         RCC_Periph.CR.HSION := 1;
-
-         loop
-            exit when RCC_Periph.CR.HSIRDY = 1;
-         end loop;
-
-      else
-         --  Configure high-speed external clock, if enabled
 
          RCC_Periph.CR.HSEBYP := (if Config.HSE_Bypass
                                   then 1
@@ -160,6 +180,15 @@ procedure Setup_Pll is
 
          loop
             exit when RCC_Periph.CR.HSERDY = 1;
+         end loop;
+
+      else
+         --  Configure high-speed external clock, if enabled
+
+         RCC_Periph.CR.HSION := 1;
+
+         loop
+            exit when RCC_Periph.CR.HSIRDY = 1;
          end loop;
       end if;
 
@@ -192,18 +221,28 @@ procedure Setup_Pll is
 
       --  Enable the power interface clock and select the voltage scale
       --  needed for the target SYSCLK frequency (PLL is still off at this
-      --  point, see Reset_Clocks, so VOS is writable here). See RM0383
-      --  section 5.1.3, PWR_CR.VOS[1:0]:
-      --    01 => Scale 3, SYSCLK <= 64 MHz
-      --    10 => Scale 2, SYSCLK <= 84 MHz (reset value)
-      --    11 => Scale 1, SYSCLK <= 100 MHz
+      --  point, see Reset_Clocks, so VOS is writable here). The width of
+      --  PWR_CR.VOS differs per MCU_Sub_Family, so the actual selection is
+      --  delegated to Setup_Voltage_Scale (see its spec for details).
 
       RCC_Periph.APB1ENR.PWREN := 1;
-      PWR_Periph.CR.VOS :=
-       (case SYSCLK_Freq is
-        when 0 .. 64_000_000 => 1,
-        when 64_000_001 .. 84_000_000 => 2,
-        when others => 3);
+
+      PWR_Periph.CR.VOS := Voltage_Scaling;
+
+      --  Configure flash
+      --  Must be done before increasing the frequency, otherwise the CPU
+      --  won't be able to fetch new instructions.
+
+      FLASH_Periph.ACR.ICEN  := 0;
+      FLASH_Periph.ACR.DCEN  := 0;
+      FLASH_Periph.ACR.ICRST := 1;
+      FLASH_Periph.ACR.DCRST := 1;
+      FLASH_Periph.ACR :=
+        (LATENCY => FLASH_Latency,
+         ICEN    => 1,
+         DCEN    => 1,
+         PRFTEN  => 1,
+         others  => <>);
 
       --  Activate PLL if enabled
 
@@ -233,21 +272,6 @@ procedure Setup_Pll is
             exit when RCC_Periph.CR.PLLRDY = 1;
          end loop;
       end if;
-
-      --  Configure flash
-      --  Must be done before increasing the frequency, otherwise the CPU
-      --  won't be able to fetch new instructions.
-
-      FLASH_Periph.ACR.ICEN  := 0;
-      FLASH_Periph.ACR.DCEN  := 0;
-      FLASH_Periph.ACR.ICRST := 1;
-      FLASH_Periph.ACR.DCRST := 1;
-      FLASH_Periph.ACR :=
-        (LATENCY => FLASH_Latency,
-         ICEN    => 1,
-         DCEN    => 1,
-         PRFTEN  => 1,
-         others  => <>);
 
       --  Configure derived clocks
 
