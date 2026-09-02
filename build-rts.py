@@ -735,6 +735,114 @@ class Stm32G4(arm.cortexm.CortexM4F):
         self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="RAM")
 
 
+class Stm32F4(arm.cortexm.CortexM4F):
+    @property
+    def name(self):
+        return "stm32f4xx"
+
+    @property
+    def parent(self):
+        return ArmV7MArch_Patched
+
+    @property
+    def use_semihosting_io(self):
+        return True
+
+    @property
+    def loaders(self):
+        return ("ROM", "RAM")
+
+    @property
+    def system_ads(self):
+        return {
+            "light": "system-xi-arm.ads",
+            "light-tasking": "system-xi-cortexm4-sfp.ads",
+            "embedded": "system-xi-cortexm4-full.ads",
+        }
+
+    def __init__(self):
+        super(Stm32F4, self).__init__()
+
+        self.add_linker_script("stm32f4_src/ld/common-RAM.ld")
+        self.add_linker_script("stm32f4_src/ld/common-ROM.ld")
+
+        # Common source files, shared by all MCU_Sub_Family variants
+        self.add_gnat_sources(
+            "bb-runtimes/arm/stm32/start-common.S",
+            "bb-runtimes/arm/stm32/start-ram.S",
+            "bb-runtimes/arm/stm32/start-rom.S",
+            "stm32f4_src/setup_pll.ads",
+            "stm32f4_src/setup_pll.adb",
+            "stm32f4_src/s-bbpara.ads",
+            "stm32f4_src/s-bbbopa.ads",
+        )
+
+        # Source files that are specific to each MCU_Sub_Family variant.
+        # STM32F405/407/415/417 share the same RCC/FLASH/interrupt layout
+        # (they differ only by the presence of a CRYP/HASH peripheral, which
+        # this runtime doesn't touch), so "F407" and "F417" both reuse the
+        # "stm32f4x7" source directory. More variants may be added here
+        # later, following the same pattern as stm32f0xx/stm32g0xx/stm32g4xx.
+        sub_family_dirs = {
+            "F411": "stm32f411",
+            "F407": "stm32f4x7",
+            "F417": "stm32f4x7",
+        }
+
+        for sub_family, dir_name in sub_family_dirs.items():
+            sub_family_dir = f"stm32f4_src/{dir_name}"
+
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/s-bbmcpa.ads",
+                f"{sub_family_dir}/s-bbmcpa.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/i-stm32.ads",
+                f"{sub_family_dir}/svd/i-stm32.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/i-stm32-flash.ads",
+                f"{sub_family_dir}/svd/i-stm32-flash.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/i-stm32-pwr.ads",
+                f"{sub_family_dir}/svd/i-stm32-pwr.ads",
+            )
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/i-stm32-rcc.ads",
+                f"{sub_family_dir}/svd/i-stm32-rcc.ads",
+            )
+            self.add_source_alias(
+                "gnarl",
+                f"{sub_family}/a-intnam.ads",
+                f"{sub_family_dir}/svd/a-intnam.ads",
+            )
+
+            # handler.S (the interrupt vector table) is compiled as part of
+            # the "gnat" library, not "gnarl": Ravenscar_Build only declares
+            # the "Ada" language, so an Asm_Cpp source placed under "gnarl"
+            # would silently never be compiled, leaving "__vectors" undefined
+            # at link time. This matches how stm32f0xx/stm32g4xx place their
+            # own handler.S.
+            self.add_source_alias(
+                "gnat",
+                f"{sub_family}/handler.S",
+                f"{sub_family_dir}/svd/handler.S",
+            )
+
+        # Don't warn about RAM sections having RWX permissions. Execute
+        # permissions are currently needed for the stack since the compiler
+        # may emit executable trampolines on the stack in some cases
+        # (e.g. pointers to nested subprograms).
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="ROM")
+        self.add_linker_switch("-Wl,--no-warn-rwx-segments", loader="RAM")
+
+
 def build_configs(target):
     if target == "rp2040":
         return RP2040()
@@ -754,6 +862,8 @@ def build_configs(target):
         return Stm32G0()
     elif target == "stm32g4xx":
         return Stm32G4()
+    elif target == "stm32f4xx":
+        return Stm32F4()
     else:
         assert False, "unexpected target: %s" % target
 
