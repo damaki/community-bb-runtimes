@@ -12,6 +12,7 @@ added over time:
 * STM32F427/429 (`MCU_Sub_Family` = `"F429"`; the closely related
   F427/F437/F439 parts are not wired up yet, but could reuse the same
   runtime support)
+* STM32F446 (`MCU_Sub_Family` = `"F446"`)
 
 The following runtime profiles are supported:
 * light
@@ -78,16 +79,17 @@ is being targeted:
       <tt>"F412"</tt>,
       <tt>"F417"</tt>,
       <tt>"F427"</tt>,
-      <tt>"F429"</tt>
+      <tt>"F429"</tt>,
+      <tt>"F446"</tt>
     </td>
     <td><tt>"F411"</tt></td>
     <td>
       Specifies the sub-family part of the STM32F4 part number. For example,
       choose "F411" for the STM32F411CEU6, "F407" for the STM32F407VET6,
-      "F429" for the STM32F429ZIT6, or "F412" for the STM32F412ZGT6.
-      "F407" and "F417" share the same runtime support (they differ only by
-      the presence of a CRYP/HASH peripheral, which this runtime does not
-      use). More sub-families may be added in the future.
+      "F429" for the STM32F429ZIT6, "F412" for the STM32F412ZGT6 or
+      "F446" for the STM32F446RET6.
+      "F407" and "F417" share the same runtime support.
+      More sub-families may be added in the future.
     </td>
   </tr>
   <tr>
@@ -261,9 +263,7 @@ clock tree:
       Specifies the 'P' divider value in the PLL configuration. This
       determines the PLL's main output, used as SYSCLK. The resulting
       SYSCLK must not exceed 100 MHz on STM32F411/F412, 168 MHz on
-      STM32F405/407/415/417, or 180 MHz on STM32F427/429 (the runtime
-      automatically enables PWR over-drive mode on STM32F427/429 whenever
-      SYSCLK exceeds 168 MHz).
+      STM32F405/407/415/417, or 180 MHz on STM32F427/429/446.
     </td>
   </tr>
   <tr>
@@ -298,6 +298,12 @@ clock tree:
     <td><tt>"PLL"</tt></td>
     <td>
       Specifies the clock source to use for the system clock (SYSCLK).
+      <tt>"PLL"</tt> always selects the main PLL's P output (RCC_CFGR.SW
+      = 2). On STM32F446, RCC_CFGR.SW also has a fourth encoding (3) that
+      selects the PLL's R output (PLLR) as SYSCLK instead; this runtime
+      does not support that option (there is no corresponding
+      <tt>SYSCLK_Src</tt> value), so SYSCLK is always driven from the
+      PLL's P output, never from PLLR.
     </td>
   </tr>
   <tr>
@@ -320,7 +326,7 @@ clock tree:
     <td>
       Specifies the divider to use for the APB1 prescaler. APB1 must not
       exceed 50 MHz on STM32F411/F412, 42 MHz on STM32F405/407/415/417, or
-      45 MHz on STM32F427/429.
+      45 MHz on STM32F427/429/F446.
     </td>
   </tr>
   <tr>
@@ -333,7 +339,7 @@ clock tree:
     <td>
       Specifies the divider to use for the APB2 prescaler. APB2 must not
       exceed 100 MHz on STM32F411/F412, 84 MHz on STM32F405/407/415/417, or
-      90 MHz on STM32F429.
+      90 MHz on STM32F427/429/F446.
     </td>
   </tr>
 </table>

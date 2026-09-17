@@ -147,7 +147,7 @@ generate_c = false
 output_dir = "gnat_user"
 
 [configuration.variables]
-MCU_Sub_Family = { type = "Enum", values = ["F411", "F407", "F417", "F427", "F429", "F412"], default = "F411" }
+MCU_Sub_Family = { type = "Enum", values = ["F411", "F407", "F417", "F427", "F429", "F412", "F446"], default = "F411" }
 MCU_Pin_Count = { type = "Enum", values = ["C", "R", "V", "Z", "I"], default = "C" }
 MCU_Flash_Memory_Size = { type = "String", default = "E" }
 
