@@ -4,9 +4,9 @@
 --                                                                          --
 --              S Y S T E M . B B . M C U _ P A R A M E T E R S             --
 --                                                                          --
---                                  S p e c                                 --
+--                                  B o d y                                 --
 --                                                                          --
---                   Copyright (C) 2016-2020, AdaCore                       --
+--                    Copyright (C) 2012-2026, Free Software Foundation     --
 --                                                                          --
 -- GNAT is free software;  you can  redistribute it  and/or modify it under --
 -- terms of the  GNU General Public License as published  by the Free Soft- --
@@ -27,23 +27,19 @@
 -- GNAT was originally developed  by the GNAT team at  New York University. --
 -- Extensive contributions were provided by Ada Core Technologies Inc.      --
 --                                                                          --
--- The port of GNARL to bare board targets was initially developed by the   --
--- Real-Time Systems Group at the Technical University of Madrid.           --
---                                                                          --
 ------------------------------------------------------------------------------
 
---  This package defines MCU parameters for the STM32F427/429/437/439
---  family.
+with Interfaces.STM32.RCC; use Interfaces.STM32.RCC;
 
-package System.BB.MCU_Parameters is
-   pragma No_Elaboration_Code_All;
-   pragma Preelaborate;
+package body System.BB.MCU_Parameters is
 
-   Number_Of_Interrupts : constant := 91;
+   ---------------------
+   -- Configure_PLL_R --
+   ---------------------
 
-   procedure PWR_Overdrive_Enable;
-
-   procedure Configure_PLL_R (Div : Positive) is null;
-   --  STM32F427/429/437/439 have no PLL R output. This is a no-op.
+   procedure Configure_PLL_R (Div : Positive) is
+   begin
+      RCC_Periph.PLLCFGR.PLLR := Interfaces.STM32.UInt3 (Div);
+   end Configure_PLL_R;
 
 end System.BB.MCU_Parameters;

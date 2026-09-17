@@ -7,6 +7,7 @@ below). Currently the following sub-families are supported; more may be
 added over time:
 * STM32F411 (STM32F411Cx/Rx/Vx, with `x` being `C` for 256KB flash or `E`
   for 512KB flash)
+* STM32F412 (`MCU_Sub_Family` = `"F412"`)
 * STM32F405/407/415/417 (`MCU_Sub_Family` = `"F407"` or `"F417"`)
 * STM32F427/429 (`MCU_Sub_Family` = `"F429"`; the closely related
   F427/F437/F439 parts are not wired up yet, but could reuse the same
@@ -72,20 +73,21 @@ is being targeted:
   <tr>
     <td><tt>MCU_Sub_Family</tt></td>
     <td>
-      <tt>"F411"</tt>,
       <tt>"F407"</tt>,
+      <tt>"F411"</tt>,
+      <tt>"F412"</tt>,
       <tt>"F417"</tt>,
-      <tt>"F427"</tt>
+      <tt>"F427"</tt>,
       <tt>"F429"</tt>
     </td>
     <td><tt>"F411"</tt></td>
     <td>
       Specifies the sub-family part of the STM32F4 part number. For example,
-      choose "F411" for the STM32F411CEU6, "F407" for the STM32F407VET6, or
-      "F429" for the STM32F429ZIT6. "F407" and "F417" share the same
-      runtime support (they differ only by the presence of a CRYP/HASH
-      peripheral, which this runtime does not use). More sub-families may
-      be added in the future.
+      choose "F411" for the STM32F411CEU6, "F407" for the STM32F407VET6,
+      "F429" for the STM32F429ZIT6, or "F412" for the STM32F412ZGT6.
+      "F407" and "F417" share the same runtime support (they differ only by
+      the presence of a CRYP/HASH peripheral, which this runtime does not
+      use). More sub-families may be added in the future.
     </td>
   </tr>
   <tr>
@@ -258,7 +260,7 @@ clock tree:
     <td>
       Specifies the 'P' divider value in the PLL configuration. This
       determines the PLL's main output, used as SYSCLK. The resulting
-      SYSCLK must not exceed 100 MHz on STM32F411, 168 MHz on
+      SYSCLK must not exceed 100 MHz on STM32F411/F412, 168 MHz on
       STM32F405/407/415/417, or 180 MHz on STM32F427/429 (the runtime
       automatically enables PWR over-drive mode on STM32F427/429 whenever
       SYSCLK exceeds 168 MHz).
@@ -271,6 +273,19 @@ clock tree:
     <td>
       Specifies the 'Q' divider value in the PLL configuration, used to
       generate the 48 MHz clock for USB OTG FS / SDIO / RNG.
+    </td>
+  </tr>
+  <tr>
+    <td><tt>PLL_R_Div</tt></td>
+    <td><tt>2 .. 7</tt></td>
+    <td><tt>2</tt></td>
+    <td>
+      Specifies the 'R' divider value in the PLL configuration. This is
+      only meaningful on STM32F412/446, where the PLL R output clocks the
+      I2S/SAI/SPDIF-Rx peripherals; it is ignored on other sub-families,
+      which have no PLL R output on the main PLL. Note that this runtime
+      does not support using PLLR as the SYSCLK source (RCC_CFGR.SW = 3,
+      only available on STM32F446) -- see <tt>SYSCLK_Src</tt> below.
     </td>
   </tr>
   <tr>
@@ -304,7 +319,7 @@ clock tree:
     <td><tt>"DIV2"</tt></td>
     <td>
       Specifies the divider to use for the APB1 prescaler. APB1 must not
-      exceed 50 MHz on STM32F411, 42 MHz on STM32F405/407/415/417, or
+      exceed 50 MHz on STM32F411/F412, 42 MHz on STM32F405/407/415/417, or
       45 MHz on STM32F427/429.
     </td>
   </tr>
@@ -317,7 +332,7 @@ clock tree:
     <td><tt>"DIV1"</tt></td>
     <td>
       Specifies the divider to use for the APB2 prescaler. APB2 must not
-      exceed 100 MHz on STM32F411, 84 MHz on STM32F405/407/415/417, or
+      exceed 100 MHz on STM32F411/F412, 84 MHz on STM32F405/407/415/417, or
       90 MHz on STM32F429.
     </td>
   </tr>

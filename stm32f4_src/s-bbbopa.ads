@@ -66,7 +66,8 @@ package System.BB.Board_Parameters is
 
    type PLL_P_Range is range 24_000_000 ..
      (case STM32F4xx_Runtime_Config.MCU_Sub_Family is
-        when STM32F4xx_Runtime_Config.F411 => 100_000_000,
+        when STM32F4xx_Runtime_Config.F411
+           | STM32F4xx_Runtime_Config.F412 => 100_000_000,
         when STM32F4xx_Runtime_Config.F407
            | STM32F4xx_Runtime_Config.F417 => 168_000_000,
         when STM32F4xx_Runtime_Config.F427
@@ -91,6 +92,15 @@ package System.BB.Board_Parameters is
 
    PLL_Q_Freq : constant :=
      PLL_VCO_Freq / STM32F4xx_Runtime_Config.PLL_Q_Div;
+
+   --  The PLL R output only exists on STM32F412/446;
+   --  it is reserved on the other sub-families. This runtime doesn't use
+   --  it, but exposes the configured value for use by application code
+   --  (e.g. an I2S/SAI driver selecting PLLR as their clock source via
+   --  RCC_DCKCFGR.I2S1SRC/I2S2SRC).
+
+   PLL_R_Freq : constant :=
+     PLL_VCO_Freq / STM32F4xx_Runtime_Config.PLL_R_Div;
 
    SYSCLK_Freq : constant :=
      (case STM32F4xx_Runtime_Config.SYSCLK_Src is
