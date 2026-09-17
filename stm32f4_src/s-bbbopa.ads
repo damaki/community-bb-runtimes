@@ -63,6 +63,8 @@ package System.BB.Board_Parameters is
    --  parts once over-drive mode is enabled; Setup_Pll enables over-drive
    --  automatically whenever the configured SYSCLK exceeds 168 MHz on
    --  these sub-families (see System.BB.MCU_Parameters.PWR_Overdrive_Enable).
+   --  STM32F446 (RM0390) has the same 168/180 MHz limits (with/without
+   --  over-drive) as STM32F427/429.
 
    type PLL_P_Range is range 24_000_000 ..
      (case STM32F4xx_Runtime_Config.MCU_Sub_Family is
@@ -71,7 +73,8 @@ package System.BB.Board_Parameters is
         when STM32F4xx_Runtime_Config.F407
            | STM32F4xx_Runtime_Config.F417 => 168_000_000,
         when STM32F4xx_Runtime_Config.F427
-           | STM32F4xx_Runtime_Config.F429 => 180_000_000);
+           | STM32F4xx_Runtime_Config.F429
+           | STM32F4xx_Runtime_Config.F446 => 180_000_000);
 
    PLL_IN_Freq : constant :=
      (case STM32F4xx_Runtime_Config.PLL_Src is

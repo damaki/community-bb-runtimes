@@ -778,19 +778,10 @@ class Stm32F4(arm.cortexm.CortexM4F):
         )
 
         # Source files that are specific to each MCU_Sub_Family variant.
-        # STM32F405/407/415/417 share the same RCC/FLASH/interrupt layout
-        # (they differ only by the presence of a CRYP/HASH peripheral, which
-        # this runtime doesn't touch), so "F407" and "F417" both reuse the
-        # "stm32f4x7" source directory. STM32F429 has its own RCC/FLASH/PWR
-        # register layout (e.g. a 3-level PWR_CR.VOS like F411, instead of
-        # F407/F417's single-bit VOS) and a larger interrupt vector table
-        # (it has LTDC/FMC/SAI/DMA2D/SPI4-6/UART7-8, which F407/F417 lack),
-        # so it gets its own "stm32f429" source directory. STM32F412 also
-        # gets its own "stm32f412" source directory: it shares STM32F411's
-        # 100 MHz max SYSCLK and 2-bit 3-scale PWR_CR.VOS (no over-drive),
-        # but its RCC_PLLCFGR has a real PLLR field used to clock I2S only.
-        # More variants may be added here later, following the same pattern
-        # as stm32f0xx/stm32g0xx/stm32g4xx.
+        # STM32F405/407/415/417 share the same RCC/FLASH/interrupt layout,
+        # so "F407" and "F417" both reuse the "stm32f4x7" source directory.
+        # Other CPUs have its own source directories. More variants may be
+        # added here later, following the same pattern as  stm32f0xx/g4xx.
         sub_family_dirs = {
             "F411": "stm32f411",
             "F412": "stm32f412",
@@ -798,6 +789,7 @@ class Stm32F4(arm.cortexm.CortexM4F):
             "F417": "stm32f4x7",
             "F427": "stm32f429",
             "F429": "stm32f429",
+            "F446": "stm32f446",
         }
 
         for sub_family, dir_name in sub_family_dirs.items():
@@ -846,7 +838,7 @@ class Stm32F4(arm.cortexm.CortexM4F):
                 f"{sub_family_dir}/svd/handler.S",
             )
 
-        for sub_family in ["F412", "F427", "F429"]:
+        for sub_family in ["F412", "F427", "F429", "F446"]:
             sub_family_dir = f"stm32f4_src/{sub_family_dirs[sub_family]}"
 
             self.add_source_alias(
