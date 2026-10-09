@@ -38,6 +38,7 @@ package body System.BB.MCU_Parameters is
    --------------------------
 
    procedure PWR_Overdrive_Enable is
+      use type Interfaces.STM32.Bit;
    begin
       --  Enable the over-drive mode
 
