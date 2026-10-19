@@ -90,7 +90,12 @@ oscillator (matching many F411 boards, including the "WeAct BlackPill"):
 $(profile_underscored)_$(target).HSE_Clock_Frequency = 25000000
 $(profile_underscored)_$(target).HSE_Bypass = false
 
-# Select the PLL as the SYSCLK source, driven from HSE
+# Select the PLL as the SYSCLK source, driven from HSE. "PLL" always
+# selects the main PLL's P output; on STM32F412/446, RCC_CFGR.SW also
+# has a fourth encoding that selects the PLL's R output (PLLR) as SYSCLK
+# instead, but this runtime does not support that -- there is no
+# corresponding SYSCLK_Src value, so SYSCLK is always driven from the
+# PLL's P output.
 $(profile_underscored)_$(target).SYSCLK_Src = "PLL"
 $(profile_underscored)_$(target).PLL_Src = "HSE"
 
@@ -105,6 +110,11 @@ $(profile_underscored)_$(target).PLL_P_Div = "DIV4"
 # Configure the PLL Q output (used by USB OTG FS / SDIO / RNG, must be
 # <= 48 MHz) to run at 40 MHz from the 400 MHz VCO
 $(profile_underscored)_$(target).PLL_Q_Div = 10
+
+# Configure the PLL R output to run at 50 MHz from the 400 MHz VCO. This is
+# only meaningful on STM32F446, where it clocks the I2S/SAI/SPDIF-Rx
+# peripherals; it is ignored on other sub-families.
+$(profile_underscored)_$(target).PLL_R_Div = 8
 
 # Configure the AHB, APB1 and APB2 prescalers
 $(profile_underscored)_$(target).AHB_Pre  = "DIV1"
@@ -137,7 +147,7 @@ generate_c = false
 output_dir = "gnat_user"
 
 [configuration.variables]
-MCU_Sub_Family = { type = "Enum", values = ["F411", "F407", "F417", "F427", "F429"], default = "F411" }
+MCU_Sub_Family = { type = "Enum", values = ["F411", "F407", "F417", "F427", "F429", "F412"], default = "F411" }
 MCU_Pin_Count = { type = "Enum", values = ["C", "R", "V", "Z", "I"], default = "C" }
 MCU_Flash_Memory_Size = { type = "String", default = "E" }
 
@@ -151,6 +161,7 @@ PLL_M_Div = { type = "Integer", first = 2, last = 63, default = 8 }
 PLL_N_Mul = { type = "Integer", first = 50, last = 432, default = 168 }
 PLL_P_Div = { type = "Enum", values = ["DIV2", "DIV4", "DIV6", "DIV8"], default = "DIV4" }
 PLL_Q_Div = { type = "Integer", first = 2, last = 15, default = 7 }
+PLL_R_Div = { type = "Integer", first = 2, last = 7, default = 2 }
 SYSCLK_Src = { type = "Enum", values = ["HSI", "HSE", "PLL"], default = "PLL" }
 AHB_Pre = { type = "Enum", values = ["DIV1", "DIV2", "DIV4", "DIV8", "DIV16", "DIV64", "DIV128", "DIV256", "DIV512"], default = "DIV1" }
 APB1_Pre = { type = "Enum", values = ["DIV1", "DIV2", "DIV4", "DIV8", "DIV16"], default = "DIV2" }

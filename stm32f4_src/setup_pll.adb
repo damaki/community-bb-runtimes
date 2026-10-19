@@ -77,8 +77,8 @@ procedure Setup_Pll is
 
    Overdrive_Available : constant Boolean :=
      (case Config.MCU_Sub_Family is
-        when Config.F411 | Config.F407 | Config.F417 => False,
-        when Config.F427 | Config.F429               => True);
+        when Config.F411 | Config.F407 | Config.F417 | Config.F412 => False,
+        when Config.F427 | Config.F429                             => True);
 
    Activate_Overdrive : constant Boolean :=
      Activate_PLL and then Overdrive_Available
@@ -87,17 +87,13 @@ procedure Setup_Pll is
    --  Flash latency, assuming VDD in the range 2.7 .. 3.6V. See RM0383
    --  Table 10 (STM32F411) / RM0090 Table 11 (STM32F405/407/415/417, and
    --  STM32F427/429/437/439 both with and without over-drive -- the wait
-   --  state count for a given HCLK is the same either way) "Number of wait
-   --  states according to CPU clock (HCLK) frequency".
-   --
-   --  TODO(stm32f411): this table is written from general STM32F4 datasheet
-   --  knowledge (it has not been cross-checked against RM0383's actual
-   --  Table 10 for the STM32F411 specifically) -- please verify against the
-   --  datasheet before relying on it for a production build.
+   --  state count for a given HCLK is the same either way) / RM0402 Table 5
+   --  (STM32F412, which has the same wait-state table as STM32F411)
+   --  "Number of wait states according to CPU clock (HCLK) frequency".
 
    FLASH_Latency : constant :=
      (case Config.MCU_Sub_Family is
-        when Config.F411 =>
+        when Config.F411 | Config.F412 =>
           (if    SYSCLK_Freq <= 30_000_000 then 0
            elsif SYSCLK_Freq <= 60_000_000 then 1
            elsif SYSCLK_Freq <= 90_000_000 then 2
@@ -111,7 +107,8 @@ procedure Setup_Pll is
            else 5));
 
    --  Regulator voltage scaling output selection
-   --  F411: See RM0383 section 5.1.3, PWR_CR.VOS[1:0]:
+   --  F411/F412: See RM0383 section 5.1.3 / RM0402 section 5.1.3,
+   --  PWR_CR.VOS[1:0]:
    --    01 => Scale 3, SYSCLK <= 64 MHz
    --    10 => Scale 2, SYSCLK <= 84 MHz (reset value)
    --    11 => Scale 1, SYSCLK <= 100 MHz
@@ -126,7 +123,7 @@ procedure Setup_Pll is
 
    Voltage_Scaling : constant :=
      (case Config.MCU_Sub_Family is
-        when Config.F411 =>
+        when Config.F411 | Config.F412 =>
           (if    SYSCLK_Freq <= 64_000_000 then 1
            elsif SYSCLK_Freq <= 84_000_000 then 2
            else 3),
@@ -138,19 +135,19 @@ procedure Setup_Pll is
            elsif SYSCLK_Freq <= 144_000_000 then 2
            else 3));
 
-   --  Maximum APB1/APB2 frequencies. See RM0383 section 3.3 (STM32F411)
+   --  Maximum APB1/APB2 frequencies. See RM0383 section 3.3 (STM32F411/412)
    --  and RM0090 section 3.3 (STM32F405/407/415/417, and
    --  STM32F427/429/437/439 which have higher limits).
 
    APB1_Max_Freq : constant :=
      (case Config.MCU_Sub_Family is
-        when Config.F411               => 50_000_000,
+        when Config.F411 | Config.F412 => 50_000_000,
         when Config.F407 | Config.F417 => 42_000_000,
         when Config.F427 | Config.F429 => 45_000_000);
 
    APB2_Max_Freq : constant :=
      (case Config.MCU_Sub_Family is
-        when Config.F411               => 100_000_000,
+        when Config.F411 | Config.F412 => 100_000_000,
         when Config.F407 | Config.F417 => 84_000_000,
         when Config.F427 | Config.F429 => 90_000_000);
 
@@ -178,8 +175,8 @@ procedure Setup_Pll is
       pragma Compile_Time_Error
         (Activate_PLL and then PLL_P_Freq not in PLL_P_Range,
          "Invalid PLL configuration. PLL P output frequency (SYSCLK) must"
-           & " be in the range 24 .. 100 MHz for F411, 24 .. 168 MHz for"
-           & " F407/F417, or 24 .. 180 MHz for F427/F429");
+           & " be in the range 24 .. 100 MHz for F411/F412, 24 .. 168 MHz"
+           & " for F407/F417, or 24 .. 180 MHz for F427/F429");
 
       pragma Compile_Time_Error
         (Activate_PLL and then PLL_Q_Freq not in PLL_Q_Range,
@@ -189,12 +186,12 @@ procedure Setup_Pll is
       pragma Compile_Time_Error
         (APB1_Freq > APB1_Max_Freq,
          "Invalid configuration. APB1 frequency must not exceed 50 MHz"
-           & " (F411), 42 MHz (F407/F417) or 45 MHz (F427/F429)");
+           & " (F411/F412), 42 MHz (F407/F417) or 45 MHz (F427/F429)");
 
       pragma Compile_Time_Error
         (APB2_Freq > APB2_Max_Freq,
          "Invalid configuration. APB2 frequency must not exceed 100 MHz"
-           & " (F411), 84 MHz (F407/F417) or 90 MHz (F427/F429)");
+           & " (F411/F412), 84 MHz (F407/F417) or 90 MHz (F427/F429)");
 
       SW_Value : CFGR_SW_Field;
 
@@ -296,6 +293,12 @@ procedure Setup_Pll is
                          when Config.HSI => 0,
                          when Config.HSE => 1),
             others => <>);
+
+         --  Configure the PLL R output. This field only exists on
+         --  STM32F412/446; it is reserved (and left at its safe default
+         --  of 2 by "others => <>" above) on the other sub-families,
+         --  where this is a no-op.
+         System.BB.MCU_Parameters.Configure_PLL_R (Config.PLL_R_Div);
 
          RCC_Periph.CR.PLLON := 1;
 

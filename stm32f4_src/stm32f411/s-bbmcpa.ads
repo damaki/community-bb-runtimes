@@ -43,4 +43,7 @@ package System.BB.MCU_Parameters is
    procedure PWR_Overdrive_Enable is null;
    --  STM32F411 has no over-drive mode. This is a no-op.
 
+   procedure Configure_PLL_R (Div : Positive) is null;
+   --  STM32F411 has no PLL R output. This is a no-op.
+
 end System.BB.MCU_Parameters;

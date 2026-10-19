@@ -74,6 +74,11 @@ project Runtime_Build is
         --  SRAM2 + SRAM3), plus a separate 64KB CCM region (see CCM_Size
         --  below).
         RAM_Size := "192";
+
+     when "F412" =>
+        --  STM32F412 has a 256KB SRAM1 and no separate CCM region (see
+        --  CCM_Size below).
+        RAM_Size := "256";
   end case;
 
   --  Determine the CCM (Core Coupled Memory) size based on the sub-family
@@ -90,6 +95,10 @@ project Runtime_Build is
         --  STM32F405/407/415/417/427/429/437/439 all have a separate 64KB
         --  CCM region at 0x10000000.
         CCM_Size := "64";
+
+     when "F412" =>
+        --  STM32F412 has no separate CCM RAM.
+        CCM_Size := "0";
   end case;
 
   --  Select linker script
