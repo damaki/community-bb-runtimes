@@ -64,7 +64,21 @@ Board = { type = "Enum", values = [ "generic_board", "rpi_pico", "adafruit_feath
 # These are ignored when Board is not "generic_board".
 XOSC_Frequency = { type = "Integer", first = 0, default = 12000000 }
 XOSC_Startup_Delay_Mult = { type = "Integer", first = 1, last = 16383, default = 64 }
-Flash_Chip = { type = "Enum", values = [ "generic_qspi_128", "at25sf128a", "gd25q64c", "w25q16jv", "w25q32jv", "w25q64jv", "w25q128jv"], default = "generic_qspi_128" }
+Flash_Chip = { type = "Enum", values = [
+  "generic_qspi_128",
+  "generic_qspi_64",
+  "generic_qspi_32",
+  "generic_qspi_16",
+  "at25sf128a",
+  "gd25q128c",
+  "gd25q64c",
+  "gd25q32c",
+  "gd25q16c",
+  "w25q16jv",
+  "w25q32jv",
+  "w25q64jv",
+  "w25q128jv"
+], default = "generic_qspi_128" }
 
 # Clock configuration
 PLL_Sys_Reference_Div = { type = "Integer", first = 1, last = 63, default = 1 }

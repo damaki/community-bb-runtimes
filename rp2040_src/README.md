@@ -347,20 +347,48 @@ These variables are ignored for non-generic boards.
     </td>
   </tr>
   <tr>
-    <td><tt>Flash_Size</tt></td>
+    <td><tt>Flash_Chip</tt></td>
     <td>
-      <tt>2</tt><br/>
-      <tt>4</tt><br/>
-      <tt>8</tt><br/>
-      <tt>16</tt><br/>
+      <tt>"generic_qspi_128"</tt><br/>
+      <tt>"generic_qspi_64"</tt><br/>
+      <tt>"generic_qspi_32"</tt><br/>
+      <tt>"generic_qspi_16"</tt><br/>
+      <tt>"at25sf128a"</tt><br/>
+      <tt>"gd25q128c"</tt><br/>
+      <tt>"gd25q64c"</tt><br/>
+      <tt>"gd25q32c"</tt><br/>
+      <tt>"gd25q16c"</tt><br/>
+      <tt>"w25q16jv"</tt><br/>
+      <tt>"w25q32jv"</tt><br/>
+      <tt>"w25q64jv"</tt><br/>
+      <tt>"w25q128jv"</tt><br/>
     </td>
-    <td><tt>2</tt></td>
+    <td><tt>"generic_qspi_128"</tt></td>
     <td>
-      Sets the size of the flash chip that is fitted on the board in megabytes.
-      This is used to set the memory size in the linker script.
+      Sets the flash chip used on the target board and the flash size of the
+      default linker script. The <tt>generic_qspi_*</tt> options should work
+      for most flash chips. Note that the sizes are in mega<i>bits</i>
+      (128 Mb = 16 MB).
     </td>
   </tr>
 </table>
+
+>[!NOTE]
+> The `Flash_Chip` setting affects how QSPI XIP mode is enabled during boot
+> and must be set correctly based on the flash chip on the target board.
+>
+> The `generic_qspi_*` options are compatible with flash chips that have the
+> "quad enable" (QE) bit in the second bit of Status Register 2, which is the
+> case for most flashes. The `generic_qspi_*` driver also detects and handles
+> ISSI chips, which have the QE bit in bit 6 of Status Register 1.
+>
+> The `generic_qspi_*` options do not support flash chips that lack the
+> "Write Status Register 2" (31h) command, such as some Winbond chips. For
+> Winbond chips, the `w25qxxjv` options should be selected as they write to
+> Status Register 2 by doing a 16-bit write to Status Register 1.
+>
+> If your flash chip is not supported by any of the above, then let us know by
+> opening an issue.
 
 ### GPR Scenario Variables
 
