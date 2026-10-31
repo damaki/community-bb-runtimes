@@ -71,9 +71,15 @@ project Runtime_Build is
    Flash_Size := "16";
 
    case Flash_Chip is
+      when "generic_qspi_16"  => Flash_Size := "2";
+      when "generic_qspi_32"  => Flash_Size := "4";
+      when "generic_qspi_64"  => Flash_Size := "8";
       when "generic_qspi_128" => Flash_Size := "16";
       when "at25sf128a"       => Flash_Size := "16";
+      when "gd25q16c"         => Flash_Size := "2";
+      when "gd25q32c"         => Flash_Size := "4";
       when "gd25q64c"         => Flash_Size := "8";
+      when "gd25q128c"        => Flash_Size := "16";
       when "w25q16jv"         => Flash_Size := "2";
       when "w25q32jv"         => Flash_Size := "4";
       when "w25q64jv"         => Flash_Size := "8";
@@ -101,7 +107,16 @@ project Runtime_Build is
    Excluded_Sources := ();
 
    case Flash_Chip is
-      when "generic_qspi_128" | "at25sf128a" | "gd25q64c" =>
+      when "generic_qspi_16"
+         | "generic_qspi_32"
+         | "generic_qspi_64"
+         | "generic_qspi_128"
+         | "at25sf128a"
+         | "gd25q16c"
+         | "gd25q32c"
+         | "gd25q64c"
+         | "gd25q128c"
+         =>
          --  Use boot2-generic_qspi.S and exclude the other variants
          Excluded_Sources := Excluded_Sources &
            ("boot2-generic_03.S", "boot2-w25qxx.S");
