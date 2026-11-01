@@ -2,11 +2,13 @@ import os
 import pathlib
 import pygdbmi.constants
 import pygdbmi.gdbcontroller
+import queue
 import select
 import shutil
 import signal
 import socket
 import subprocess
+import threading
 import time
 from typing import Optional
 
@@ -285,13 +287,20 @@ class StUtilInterface(GdbTargetInterface):
     ):
         self.stutil = subprocess.Popen(
             ["st-util", "-v0", "-p", str(gdbserver_port)],
-            stdout=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
             stderr=subprocess.PIPE,
         )
 
-        # Prevent read() from possibly blocking indefinitely
-        os.set_blocking(self.stutil.stderr.fileno(), False)
-        os.set_blocking(self.stutil.stdout.fileno(), False)
+        # st-util prints the semihosting data to stderr. Drain stderr on a
+        # background thread into a queue instead of polling the pipe with
+        # select(): on Windows select() only works on sockets, and a plain
+        # blocking read() could hang the test if the program stops printing.
+        # The thread ends when st-util closes the pipe.
+        self._stderr_queue: queue.Queue = queue.Queue()
+        self._stderr_thread = threading.Thread(
+            target=self._drain_stderr, name="st-util-stderr", daemon=True
+        )
+        self._stderr_thread.start()
 
         super(StUtilInterface, self).__init__(
             runtime_crate_dir=runtime_crate_dir,
@@ -304,12 +313,15 @@ class StUtilInterface(GdbTargetInterface):
         super(StUtilInterface, self).shutdown()
 
         # st-util should exit when the GDB connection is closed, so wait for it
-        # to exit. If it doesn't exit quickly, then kill it.
+        # to exit. If it doesn't exit quickly, then kill it. The stderr reader
+        # thread ends by itself once st-util closes the pipe.
         try:
-            self.stutil.communicate(timeout=1.0)
+            self.stutil.wait(timeout=1.0)
         except subprocess.TimeoutExpired:
             self.stutil.kill()
-            self.stutil.communicate()
+            self.stutil.wait()
+
+        self._stderr_thread.join(timeout=1.0)
 
     def enable_semihosting(self):
         self.monitor_command("semihosting enable")
@@ -317,12 +329,30 @@ class StUtilInterface(GdbTargetInterface):
     def reset(self):
         self.monitor_command("reset")
 
+    def _drain_stderr(self):
+        """Move everything st-util writes to stderr into the queue"""
+        while True:
+            data = self.stutil.stderr.read1(4096)
+            if not data:
+                break
+            self._stderr_queue.put(data)
+
     def read_io(self, timeout=5.0):
-        # st-util prints semihosting data to stderr
-        ready = select.select([self.stutil.stderr.fileno()], [], [], timeout)
-        if ready[0]:
-            return self.stutil.stderr.read1()
-        else:
+        # st-util prints semihosting data to stderr; the reader thread queues it.
+        # With timeout=0 return everything that is already available, so that a
+        # "clear the buffer" read discards all of st-util's start-up chatter
+        # (e.g. libusb warnings) and not only its first chunk.
+        if timeout <= 0.0:
+            data = bytes()
+            while True:
+                try:
+                    data += self._stderr_queue.get_nowait()
+                except queue.Empty:
+                    return data
+
+        try:
+            return self._stderr_queue.get(timeout=timeout)
+        except queue.Empty:
             return bytes()
 
 
