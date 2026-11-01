@@ -380,6 +380,7 @@ can contain some additional, optional functions to configure the test:
 | `source_dirs` | Returns a list of additional source directories, relative to the testcase directory (e.g. one last-chance handler per profile). |
 | `external_crates` | Returns a dictionary of crate names from the Alire index and the version to use. |
 | `crate_config_values` | Returns a dictionary of crate configuration variables to set, and the value to set. |
+| `io_timeout` | Returns the seconds to wait for the program's output to reach the completion marker (5 by default; a test that waits for a slow oscillator asks for more). |
 
 Here is an example `opt.py` file:
 

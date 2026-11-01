@@ -159,7 +159,7 @@ def test_execute_on_target(
             # Keep reading output until the TEST COMPLETE marker is found
 
             test_complete_marker = bytes("===TEST COMPLETE===", "ascii")
-            actual_output = target_if.read_io_until(test_complete_marker).decode('ascii')
+            actual_output = target_if.read_io_until(test_complete_marker, timeout=tc.io_timeout()).decode('ascii')
 
             with open(testcase_dir / "test.out", "rb") as f:
                 expected_output = f.read().decode('ascii')
