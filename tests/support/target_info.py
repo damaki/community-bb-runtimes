@@ -39,6 +39,12 @@ def get_config_values(
     config_vars: Dict, updated_values: Dict[str, str]
 ) -> Dict[str, Any]:
     """Gets the set of configuration.values to apply in the test crate's Alire manifest"""
+    unknown = sorted(set(updated_values) - set(config_vars))
+    if unknown:
+        # A value for a name the crate does not declare would be dropped here and the default built - a
+        # misspelt key would then report on a configuration never compiled (Alire itself refuses unknown
+        # variables; this merge must too).
+        raise ValueError(f"configuration values for variables the crate does not declare: {unknown}")
     return {
         var_name: (
             updated_values[var_name]
