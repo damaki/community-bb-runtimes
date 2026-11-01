@@ -97,7 +97,7 @@ pytest . \
     --target-board=<target> \
     --target-if=jlink-gdbserver \
     --gdbserver-port=<gdb-port> \
-    --text-io-port<telnet-port>
+    --text-io-port=<telnet-port>
 ```
 
 Where:
