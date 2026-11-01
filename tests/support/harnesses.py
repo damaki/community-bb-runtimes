@@ -125,10 +125,10 @@ class TestHarness:
         relative to the testcase directory
         """
         if self._opt_module is None:
-            return {}
+            return []
 
         if not hasattr(self._opt_module, "source_dirs"):
-            return {}
+            return []
 
         return self._opt_module.source_dirs(self._target_info)
 
