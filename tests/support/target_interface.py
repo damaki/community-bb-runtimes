@@ -139,7 +139,7 @@ class GdbTargetInterface:
     ):
         """Send a command to the remote monitor"""
         self._write(f'-interpreter-exec console "monitor {cmd}"', read_response=False)
-        self._wait_for_result()
+        self._wait_for_result(timeout_sec=timeout_sec)
 
     def read_io(self, timeout=5.0):
         """Read semihosting data from the target"""
