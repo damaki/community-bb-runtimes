@@ -117,6 +117,18 @@ class TestHarness:
 
         return self._opt_module.crate_config_values(self._target_info)
 
+    def io_timeout(self) -> float:
+        """
+        Call io_timeout() in the testcase's opt.py file, if it exists: the
+        seconds the harness waits for the program's output to reach the
+        completion marker (5 by default; a test that waits for a slow
+        oscillator asks for more).
+        """
+        if self._opt_module is None or not hasattr(self._opt_module, "io_timeout"):
+            return 5.0
+
+        return float(self._opt_module.io_timeout(self._target_info))
+
     def source_dirs(self) -> List[str]:
         """
         Call source_dirs() in the testcase's opt.py file, if it exists.
