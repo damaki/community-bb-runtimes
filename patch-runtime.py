@@ -53,7 +53,7 @@ def patch_target_options(gpr_file: pathlib.Path, profile: str, target: str):
     # Change "light-tasking" to "light_tasking"
     profile = profile.replace("-", "_")
 
-    with open(gpr_file, "r") as f:
+    with open(gpr_file, "r", encoding="utf-8") as f:
         content = f.read()
 
     content = content.replace(
@@ -65,7 +65,7 @@ def patch_target_options(gpr_file: pathlib.Path, profile: str, target: str):
         f'"{profile.upper()}_{target.upper()}_LIBRARY_TYPE"',
     )
 
-    with open(gpr_file, "w") as f:
+    with open(gpr_file, "w", encoding="utf-8") as f:
         f.write(content)
 
 
@@ -74,7 +74,7 @@ def gen_from_template(
     out_file: pathlib.Path,
     template_values: Dict[str, str],
 ):
-    with open(template_file, "r") as f:
+    with open(template_file, "r", encoding="utf-8") as f:
         content = f.read()
 
     for key, value in template_values.items():
@@ -99,7 +99,7 @@ def gen_from_template(
         )
         sys.exit(1)
 
-    with open(out_file, "w", newline="\n") as f:
+    with open(out_file, "w", encoding="utf-8", newline="\n") as f:
         f.write(content)
 
 
