@@ -360,7 +360,8 @@ an individual test case.
 Each testcase subdirectory contains the sources needed for the test.
 The testcase contains at least the file `test.adb` which contains the main
 subprogram for the testcase, called `Test`. The testcase can also contain
-other source files, which must be in the same directory.
+other source files, in the same directory or in the additional directories
+its `opt.py` names through `source_dirs`.
 
 The testcase must print the string `"===TEST COMPLETE==="` via `Ada.Text_IO`
 at the end of the test. This lets the test infrastructure know when the
@@ -376,6 +377,7 @@ can contain some additional, optional functions to configure the test:
 |----------|-------------|
 | `check_test_conditions` | Calls `pytest.skip()` if the test is not applicable for given runtime configuration. |
 | `local_crates` | Returns a list of crate names that are in the testcases's directory. These crates will be added to the build. |
+| `source_dirs` | Returns a list of additional source directories, relative to the testcase directory (e.g. one last-chance handler per profile). |
 | `external_crates` | Returns a dictionary of crate names from the Alire index and the version to use. |
 | `crate_config_values` | Returns a dictionary of crate configuration variables to set, and the value to set. |
 
