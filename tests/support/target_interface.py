@@ -80,34 +80,43 @@ class GdbTargetInterface:
         """
         self.terminal_io_port = terminal_io_port
 
-        gdb_path = find_gdb(runtime_crate_dir, "arm-eabi")
+        self.gdb = None
+        self.terminal_socket = None
+        try:
+            gdb_path = find_gdb(runtime_crate_dir, "arm-eabi")
 
-        if gdb_path is None:
-            raise FileNotFoundError(
-                f"Failed to find GDB in Alire environment for {runtime_crate_dir.name}"
+            if gdb_path is None:
+                raise FileNotFoundError(
+                    f"Failed to find GDB in Alire environment for {runtime_crate_dir.name}"
+                )
+
+            self.gdb = pygdbmi.gdbcontroller.GdbController(
+                [str(gdb_path), "--interpreter=mi2", str(executable_file.absolute())]
             )
 
-        self.gdb = pygdbmi.gdbcontroller.GdbController(
-            [str(gdb_path), "--interpreter=mi2", str(executable_file.absolute())]
-        )
+            # Clear any opening messages sent by GDB
+            self.gdb.get_gdb_response(raise_error_on_timeout=False)
 
-        # Clear any opening messages sent by GDB
-        self.gdb.get_gdb_response(raise_error_on_timeout=False)
+            # Connect to the GDB server
+            self._write(
+                f"-target-select extended-remote :{gdbserver_port}", read_response=False
+            )
+            self._wait_for_result(timeout_sec=5.0)
 
-        # Connect to the GDB server
-        self._write(
-            f"-target-select extended-remote :{gdbserver_port}", read_response=False
-        )
-        self._wait_for_result(timeout_sec=5.0)
+            self.enable_semihosting()
 
-        self.enable_semihosting()
-
-        if terminal_io_port is None:
-            self.terminal_socket = None
-        else:
-            self.terminal_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.terminal_socket.connect(("localhost", terminal_io_port))
-            self.terminal_socket.setblocking(False)
+            if terminal_io_port is None:
+                self.terminal_socket = None
+            else:
+                self.terminal_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.terminal_socket.connect(("localhost", terminal_io_port))
+                self.terminal_socket.setblocking(False)
+        except BaseException:
+            # The `with` block's clean-up never runs for a constructor that raised: the debugger would stay
+            # alive holding the ELF (on Windows the temporary directory's removal then fails with a permission
+            # error that buries the cause). Shut it down here, then let the exception out.
+            self.shutdown()
+            raise
 
     def __enter__(self):
         return self
@@ -119,7 +128,8 @@ class GdbTargetInterface:
         """Gracefully shut down the GDB session"""
         if self.terminal_socket is not None:
             self.terminal_socket.close()
-        self.gdb.exit()
+        if self.gdb is not None:
+            self.gdb.exit()
 
     def load(self, timeout_sec=30.0):
         """Load the executable onto the target"""
