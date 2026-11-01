@@ -378,6 +378,7 @@ can contain some additional, optional functions to configure the test:
 | `local_crates` | Returns a list of crate names that are in the testcases's directory. These crates will be added to the build. |
 | `external_crates` | Returns a dictionary of crate names from the Alire index and the version to use. |
 | `crate_config_values` | Returns a dictionary of crate configuration variables to set, and the value to set. |
+| `io_timeout` | Returns the seconds to wait for the program's output to reach the completion marker (5 by default; a test that waits for a slow oscillator asks for more). |
 
 Here is an example `opt.py` file:
 
