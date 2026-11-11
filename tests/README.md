@@ -77,8 +77,11 @@ Additional options to pass to pytest for on-target testing are:
   * `openocd-gdbserver`: connect to the target via OpenOCD's GDB server
   * `st-util`: connect to the target using the st-util utility.
 * `--gdbserver-port`: configures the GDB server's port number to connect to.
-* `--text-io-port`: configures the port number to connect to for reading the
+* `--semihosting-port`: configures the port number to connect to for reading the
   semihosting text output from the program running on the target.
+* `--rtt-port`: configures the port number to connect to for reading the RTT
+  text output from the program running on the target. This is used only when
+  a J-Link debugger is used (`--target-if=jlink-gdbserver`).
 
 ### On-Target Testing using J-Link
 
@@ -97,7 +100,8 @@ pytest . \
     --target-board=<target> \
     --target-if=jlink-gdbserver \
     --gdbserver-port=<gdb-port> \
-    --text-io-port=<telnet-port>
+    --semihosting-port=<telnet-port> \
+    --rtt-port=<telnet-port>
 ```
 
 Where:
@@ -108,7 +112,7 @@ Where:
 For example, to test on the RP2040 using a J-Link:
 
 ```sh
-pytest . --target-board=rp2040 --target-if=jlink-gdbserver --gdbserver-port=2331 --text-io-port=2333
+pytest . --target-board=rp2040 --target-if=jlink-gdbserver --gdbserver-port=2331 --semihosting-port=2333 --rtt-port=19021
 ```
 
 ### On-Target Testing using OpenOCD
@@ -139,7 +143,7 @@ pytest . \
     --target-board=<target> \
     --target-if=openocd-gdbserver \
     --gdbserver-port=<gdb-port> \
-    --text-io-port<telnet-port>
+    --semihosting-port<telnet-port>
 ```
 
 Where:
@@ -150,7 +154,7 @@ Where:
 For example, to test on the stm32g4xx (Nucleo-G474RE board):
 
 ```sh
-pytest . --target-board=stm32g4xx --target-if=openocd-gdbserver --gdbserver-port=3333 --text-io-port=4445
+pytest . --target-board=stm32g4xx --target-if=openocd-gdbserver --gdbserver-port=3333 --semihosting-port=4445
 ```
 
 ### On-Target Testing using st-util
@@ -267,7 +271,8 @@ pytest . \
     --target-board=rp2040 \
     --target-if=jlink-gdbserver \
     --gdbserver-port=2331 \
-    --text-io-port=2333
+    --semihosting-port=2333 \
+    --rtt-port=19021
 ```
 
 **For RP2350:**
@@ -276,7 +281,8 @@ pytest . \
     --target-board=rp2350 \
     --target-if=jlink-gdbserver \
     --gdbserver-port=2331 \
-    --text-io-port=2333
+    --semihosting-port=2333 \
+    --rtt-port=19021
 ```
 
 Note that the above command will also run the "build only" tests. If you only
@@ -288,7 +294,8 @@ pytest . \
     --target-board=rp2040 \
     --target-if=jlink-gdbserver \
     --gdbserver-port=2331 \
-    --text-io-port=2333
+    --semihosting-port=2333 \
+    --rtt-port=19021 \
     -k test_execute_on_target
 ```
 
@@ -325,7 +332,8 @@ pytest . \
     --target-board=nrf52840 \
     --target-if=jlink-gdbserver \
     --gdbserver-port=2331 \
-    --text-io-port=2333 \
+    --semihosting-port=2333 \
+    --rtt-port=19021 \
     -k test_execute_on_target
 ```
 

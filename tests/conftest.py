@@ -19,11 +19,18 @@ def pytest_addoption(parser):
         help="The GDB server's port number",
     )
     parser.addoption(
-        "--text-io-port",
+        "--semihosting-port",
         action="store",
         type=int,
         default=2333,
-        help="Port number to connect to for the target's text I/O data",
+        help="Port number to connect to for Text_IO data sent via semihosting",
+    )
+    parser.addoption(
+        "--rtt-port",
+        action="store",
+        type=int,
+        default=19021,
+        help="Port number to connect to for Text_IO data sent via Segger RTT",
     )
     parser.addoption(
         "--target-board",
@@ -57,8 +64,13 @@ def gdbserver_port(request):
 
 
 @pytest.fixture
-def text_io_port(request):
-    return request.config.getoption("--text-io-port")
+def semihosting_port(request):
+    return request.config.getoption("--semihosting-port")
+
+
+@pytest.fixture
+def rtt_port(request):
+    return request.config.getoption("--rtt-port")
 
 
 @pytest.fixture
