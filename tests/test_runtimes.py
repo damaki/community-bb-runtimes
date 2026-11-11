@@ -87,7 +87,8 @@ def test_execute_on_target(
     target_board,
     target_if,
     gdbserver_port,
-    text_io_port,
+    semihosting_port,
+    rtt_port,
     working_dir: Optional[str],
     keep_build_files: bool,
 ):
@@ -106,7 +107,8 @@ def test_execute_on_target(
         overrides to use for the test.
     :param target_board: The value of --target-board
     :param gdbserver_port: The value of --gdbserver-port
-    :param text_io_port: The value of --text-io-port
+    :param semihosting_port: The value of --semihosting-port
+    :param rtt_port: The value of --rtt-port
     """
     if target_board is None:
         pytest.skip("No --target-board was specified")
@@ -140,6 +142,21 @@ def test_execute_on_target(
         tc.setup()
         p = tc.build()
         assert p.returncode == 0, "Build failed"
+
+        # Choose which port to connect to for Text_IO data, depending on the
+        # test configuration
+
+        crate_config = tc.crate_config_values()
+        text_io_var = f"{target_info.runtime_crate_name}.Text_IO"
+        if text_io_var in crate_config and crate_config[text_io_var] == "Segger_RTT":
+
+            # RTT output only works with a J-Link debugger
+            if target_if != "jlink-gdbserver":
+                pytest.skip("Test requires J-Link debug interface (for Text_IO via RTT)")
+
+            text_io_port = rtt_port
+        else:
+            text_io_port = semihosting_port
 
         # Load the executable onto the target, run it, and check its output
 
