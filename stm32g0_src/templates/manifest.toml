@@ -20,3 +20,16 @@ excluded_profiles = ["light-tasking", "embedded"]
 [[template]]
 src = "stm32g0xx_runtime_config.ads.in"
 dst = "gnat_user/stm32g0xx_runtime_config.ads"
+
+[[template]]
+src = "../../common_src/s-textio.adb.in"
+dst = "gnat/s-textio.adb"
+values = { "RUNTIME_CONFIG_PACKAGE" = "STM32G0xx_Runtime_Config" }
+
+[[template]]
+src = "../../common_src/s-textio.ads"
+dst = "gnat/s-textio.ads"
+
+[[template]]
+src = "../../common_src/a-textio.adb"
+dst = "gnat/a-textio.adb"

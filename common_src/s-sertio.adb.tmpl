@@ -1,0 +1,242 @@
+------------------------------------------------------------------------------
+--                                                                          --
+--                         GNAT RUN-TIME COMPONENTS                         --
+--                                                                          --
+--                 S Y S T E M . S E G G E R _ R T T _ I O                  --
+--                                                                          --
+--                                 B o d y                                  --
+--                                                                          --
+--                Copyright (C) 2026, Free Software Foundation, Inc.        --
+--                                                                          --
+-- GNAT is free software;  you can  redistribute it  and/or modify it under --
+-- terms of the  GNU General Public License as published  by the Free Soft- --
+-- ware  Foundation;  either version 3,  or (at your option) any later ver- --
+-- sion.  GNAT is distributed in the hope that it will be useful, but WITH- --
+-- OUT ANY WARRANTY;  without even the  implied warranty of MERCHANTABILITY --
+-- or FITNESS FOR A PARTICULAR PURPOSE.                                     --
+--                                                                          --
+-- As a special exception under Section 7 of GPL version 3, you are granted --
+-- additional permissions described in the GCC Runtime Library Exception,   --
+-- version 3.1, as published by the Free Software Foundation.               --
+--                                                                          --
+-- You should have received a copy of the GNU General Public License and    --
+-- a copy of the GCC Runtime Library Exception along with this program;     --
+-- see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see    --
+-- <http://www.gnu.org/licenses/>.                                          --
+--                                                                          --
+-- GNAT was originally developed  by the GNAT team at  New York University. --
+-- Extensive contributions were provided by Ada Core Technologies Inc.      --
+--                                                                          --
+------------------------------------------------------------------------------
+
+with Interfaces.C;
+with System.Machine_Code; use System.Machine_Code;
+with "${RUNTIME_CONFIG_PACKAGE}";
+
+package body System.Segger_RTT_IO is
+
+   use type Interfaces.C.unsigned;
+
+   Up_Buffer_Length : constant :=
+     "${RUNTIME_CONFIG_PACKAGE}".Text_IO_RTT_Out_Buffer_Length;
+
+   Down_Buffer_Length : constant :=
+     "${RUNTIME_CONFIG_PACKAGE}".Text_IO_RTT_In_Buffer_Length;
+
+   procedure Data_Barrier
+   with Inline;
+
+   function Is_Tx_Buffer_Full return Boolean;
+
+   -------------
+   -- Strings --
+   -------------
+
+   type Volatile_String is array (Interfaces.C.unsigned range <>) of Character
+   with Volatile_Components;
+
+   ----------------------
+   -- RTT Buffer Types --
+   ----------------------
+
+   type Segger_RTT_Up_Buffer is record
+      Name           : System.Address;
+      Buffer         : System.Address;
+      Size_Of_Buffer : Interfaces.C.unsigned;
+      Write_Offset   : Interfaces.C.unsigned;
+      Read_Offset    : Interfaces.C.unsigned with Volatile;
+      Flags          : Interfaces.C.unsigned;
+   end record;
+
+   type Segger_RTT_Down_Buffer is record
+      Name           : System.Address;
+      Buffer         : System.Address;
+      Size_Of_Buffer : Interfaces.C.unsigned;
+      Write_Offset   : Interfaces.C.unsigned with Volatile;
+      Read_Offset    : Interfaces.C.unsigned;
+      Flags          : Interfaces.C.unsigned;
+   end record;
+
+   -----------------------
+   -- RTT Control Block --
+   -----------------------
+
+   type Segger_RTT_Up_Buffer_Array is
+     array (Positive range <>) of Segger_RTT_Up_Buffer;
+
+   type Segger_RTT_Down_Buffer_Array is
+     array (Positive range <>) of Segger_RTT_Down_Buffer;
+
+   type Segger_RTT_Control_Block is record
+      ID                   : String (1 .. 16);
+      Max_Num_Up_Buffers   : Interfaces.C.int;
+      Max_Num_Down_Buffers : Interfaces.C.int;
+      Up                   : Segger_RTT_Up_Buffer_Array (1 .. 1);
+      Down                 : Segger_RTT_Down_Buffer_Array (1 .. 1);
+   end record;
+
+   Control_Block : Segger_RTT_Control_Block
+   with Export, External_Name => "_SEGGER_RTT";
+
+   ---------------
+   -- RTT Flags --
+   ---------------
+
+   --  0 = non-blocking (skip)
+   --  1 = non-blocking (trim)
+   --  2 = blocking if FIFO is full
+
+   RTT_Mode_No_Block_Trim      : constant Interfaces.C.unsigned := 1;
+   RTT_Mode_Block_If_FIFO_Full : constant Interfaces.C.unsigned := 2;
+
+   RTT_Mode : constant :=
+     (case "${RUNTIME_CONFIG_PACKAGE}".Text_IO_RTT_Mode is
+        when "${RUNTIME_CONFIG_PACKAGE}".No_Block_Trim   =>
+          RTT_Mode_No_Block_Trim,
+
+        when "${RUNTIME_CONFIG_PACKAGE}".Block_When_Full =>
+          RTT_Mode_Block_If_FIFO_Full);
+
+   RTT_Non_Blocking_Mode : constant Boolean :=
+     RTT_Mode /= RTT_Mode_Block_If_FIFO_Full;
+
+   ---------------
+   -- Constants --
+   ---------------
+
+   Nul : constant Character := Character'Val (0);
+
+   ID_Init : constant String (1 .. 16) :=
+     Nul & Nul & Nul & Nul & Nul & Nul & "TTR REGGES";
+   --  ID string in reverse order to prevent this string from being detected
+   --  as the start of the control block
+
+   -------------
+   -- Buffers --
+   -------------
+
+   Name_1        : aliased constant String := "Ada.Text_IO" & Nul;
+   Up_Buffer_1   : aliased Volatile_String (0 .. Up_Buffer_Length - 1);
+   Down_Buffer_1 : aliased Volatile_String (0 .. Down_Buffer_Length - 1);
+
+   ------------------
+   -- Data_Barrier --
+   ------------------
+
+   procedure Data_Barrier is
+   begin
+      Asm ("dmb", Volatile => True);
+   end Data_Barrier;
+
+   ----------------
+   -- Initialize --
+   ----------------
+
+   procedure Initialize is
+   begin
+      Control_Block.Up (1) :=
+        (Name           => Name_1 (1)'Address,
+         Buffer         => Up_Buffer_1 (0)'Address,
+         Size_Of_Buffer => Up_Buffer_1'Length,
+         Write_Offset   => 0,
+         Read_Offset    => 0,
+         Flags          => RTT_Mode);
+
+      Control_Block.Down (1) :=
+        (Name           => Name_1 (1)'Address,
+         Buffer         => Down_Buffer_1 (0)'Address,
+         Size_Of_Buffer => Down_Buffer_1'Length,
+         Write_Offset   => 0,
+         Read_Offset    => 0,
+         Flags          => RTT_Mode);
+
+      Control_Block.Max_Num_Up_Buffers := 1;
+      Control_Block.Max_Num_Down_Buffers := 1;
+
+      Data_Barrier;
+
+      for I in Control_Block.ID'Range loop
+         Control_Block.ID (I) :=
+           ID_Init (ID_Init'Last - (I - Control_Block.ID'First));
+      end loop;
+   end Initialize;
+
+   -----------------------
+   -- Is_Tx_Buffer_Full --
+   -----------------------
+
+   function Is_Tx_Buffer_Full return Boolean
+   is ((Control_Block.Up (1).Write_Offset + 1) mod Up_Buffer_Length
+       = Control_Block.Up (1).Read_Offset);
+
+   -----------------
+   -- Is_Tx_Ready --
+   -----------------
+
+   function Is_Tx_Ready return Boolean
+   is (if RTT_Non_Blocking_Mode
+       then True
+       else not Is_Tx_Buffer_Full);
+
+   -----------------
+   -- Is_Rx_Ready --
+   -----------------
+
+   function Is_Rx_Ready return Boolean
+   is (Control_Block.Down (1).Read_Offset
+       /= Control_Block.Down (1).Write_Offset);
+
+   ---------
+   -- Get --
+   ---------
+
+   function Get return Character is
+      CB   : Segger_RTT_Control_Block renames Control_Block;
+      Item : Character;
+   begin
+      Item := Down_Buffer_1 (CB.Down (1).Read_Offset);
+      Data_Barrier;
+      CB.Down (1).Read_Offset := (@ + 1) mod Down_Buffer_Length;
+
+      return Item;
+   end Get;
+
+   ---------
+   -- Put --
+   ---------
+
+   procedure Put (C : Character) is
+      CB : Segger_RTT_Control_Block renames Control_Block;
+   begin
+      if RTT_Non_Blocking_Mode then
+         if Is_Tx_Buffer_Full then
+            return;
+         end if;
+      end if;
+
+      Up_Buffer_1 (CB.Up (1).Write_Offset) := C;
+      Data_Barrier;
+      CB.Up (1).Write_Offset := (@ + 1) mod Up_Buffer_Length;
+   end Put;
+
+end System.Segger_RTT_IO;
