@@ -123,6 +123,11 @@ def gen_templates_from_manifest(
                     src = template_info["src"]
                     dst = template_info["dst"]
 
+                    if "values" in template_info:
+                        additional_values = template_info["values"]
+                    else:
+                        additional_values = {}
+
                     for k, v in template_values.items():
                         src = src.replace(f"$({k})", v)
 
@@ -132,7 +137,7 @@ def gen_templates_from_manifest(
                     gen_from_template(
                         template_file=templates_dir / pathlib.Path(src),
                         out_file=runtime_dir / pathlib.Path(dst),
-                        template_values=template_values,
+                        template_values=template_values | additional_values,
                     )
 
 
