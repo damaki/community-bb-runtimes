@@ -130,5 +130,10 @@ APB_Pre = { type = "Enum", values = ["DIV1", "DIV2", "DIV4", "DIV8", "DIV16"], d
 
 Interrupt_Stack_Size = { type = "Integer", first = 1, default = 1024 }
 
+Text_IO = { type = "Enum", values = ["None", "Semihosting", "Segger_RTT"], default = "Semihosting" }
+Text_IO_RTT_Out_Buffer_Length = { type = "Integer", first = 2, default = 1024 }
+Text_IO_RTT_In_Buffer_Length = { type = "Integer", first = 2, default = 32 }
+Text_IO_RTT_Mode = { type = "Enum", values = [ "No_Block_Trim", "Block_When_Full" ], default = "No_Block_Trim" }
+
 [[depends-on]]
 gnat_arm_elf = "^16"

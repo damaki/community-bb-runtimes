@@ -9,6 +9,7 @@ sys.path.append(str(pathlib.Path(__file__).parent / "bb-runtimes"))
 
 import arm.cortexm
 import support.files_holder
+import support.bsp_sources.target
 from support import add_source_search_path
 
 
@@ -70,8 +71,12 @@ class RP2040(arm.cortexm.CortexM0P):
     def __init__(self):
         super(RP2040, self).__init__()
 
+        self.add_template_config_value("RUNTIME_CONFIG_PACKAGE", "RP2040_Runtime_Config")
+
         # Common GNAT sources
         self.add_gnat_sources(
+            "common_src/s-sertio.adb.tmpl",
+            "common_src/s-sertio.ads",
             "rp2040_src/boot2/generated/boot2-generic_03.S",
             "rp2040_src/boot2/generated/boot2-generic_qspi.S",
             "rp2040_src/boot2/generated/boot2-w25qxx.S",
@@ -158,8 +163,12 @@ class RP2350(arm.cortexm.CortexM33F):
     def __init__(self):
         super(RP2350, self).__init__()
 
+        self.add_template_config_value("RUNTIME_CONFIG_PACKAGE", "RP2350_Runtime_Config")
+
         # Common GNAT sources
         self.add_gnat_sources(
+            "common_src/s-sertio.adb.tmpl",
+            "common_src/s-sertio.ads",
             "rp2350_src/svd/i-rp2350.ads",
             "rp2350_src/svd/i-rp2350-clocks.ads",
             "rp2350_src/svd/i-rp2350-pll_sys.ads",
@@ -262,7 +271,11 @@ class NRF52(arm.cortexm.ArmV7MTarget):
             "nrf52_src/memory-map_%s.ld" % self.name, "memory-map.ld"
         )
 
+        self.add_template_config_value("RUNTIME_CONFIG_PACKAGE", "NRF52_Runtime_Config")
+
         self.add_gnat_sources(
+            "common_src/s-sertio.adb.tmpl",
+            "common_src/s-sertio.ads",
             "nrf52_src/s-bbbopa.ads",
             "nrf52_src/s-bbmcpa.ads",
             "nrf52_src/start-common.S",
@@ -410,7 +423,11 @@ class NRF54LApp(arm.cortexm.CortexM33F):
     def __init__(self):
         super(NRF54LApp, self).__init__()
 
+        self.add_template_config_value("RUNTIME_CONFIG_PACKAGE", "NRF54_App_Runtime_Config")
+
         self.add_gnat_sources(
+            "common_src/s-sertio.adb.tmpl",
+            "common_src/s-sertio.ads",
             "arm/src/breakpoint_handler-cortexm.S",
             "nrf54l_src/s-bbbopa.ads",
             "nrf54l_src/s-bbmcpa.ads",
@@ -521,8 +538,12 @@ class Stm32F0(arm.cortexm.CortexM0CommonArchSupport):
         self.remove_source("s-bbarat.ads")
         self.remove_source("s-bbarat.adb")
 
+        self.add_template_config_value("RUNTIME_CONFIG_PACKAGE", "STM32F0xx_Runtime_Config")
+
         # Common source files
         self.add_gnat_sources(
+            "common_src/s-sertio.adb.tmpl",
+            "common_src/s-sertio.ads",
             "common_src/s-bbarat.adb",
             "common_src/s-bbarat.ads",
             "stm32f0_src/s-stm32.ads",
@@ -626,8 +647,12 @@ class Stm32G0(arm.cortexm.CortexM0P):
         self.remove_source("s-bbarat.ads")
         self.remove_source("s-bbarat.adb")
 
+        self.add_template_config_value("RUNTIME_CONFIG_PACKAGE", "STM32G0xx_Runtime_Config")
+
         # Common source files
         self.add_gnat_sources(
+            "common_src/s-sertio.adb.tmpl",
+            "common_src/s-sertio.ads",
             "common_src/s-bbarat.adb",
             "common_src/s-bbarat.ads",
             "stm32g0_src/start-rom.S",
@@ -694,8 +719,12 @@ class Stm32G4(arm.cortexm.CortexM4F):
         self.add_linker_script("stm32g4_src/ld/common-RAM.ld")
         self.add_linker_script("stm32g4_src/ld/common-ROM.ld")
 
+        self.add_template_config_value("RUNTIME_CONFIG_PACKAGE", "STM32G4xx_Runtime_Config")
+
         # Common source files
         self.add_gnat_sources(
+            "common_src/s-sertio.adb.tmpl",
+            "common_src/s-sertio.ads",
             "bb-runtimes/arm/stm32/start-common.S",
             "bb-runtimes/arm/stm32/start-ram.S",
             "bb-runtimes/arm/stm32/start-rom.S",
@@ -766,8 +795,12 @@ class Stm32F4(arm.cortexm.CortexM4F):
         self.add_linker_script("stm32f4_src/ld/common-RAM.ld")
         self.add_linker_script("stm32f4_src/ld/common-ROM.ld")
 
+        self.add_template_config_value("RUNTIME_CONFIG_PACKAGE", "STM32F4xx_Runtime_Config")
+
         # Common source files, shared by all MCU_Sub_Family variants
         self.add_gnat_sources(
+            "common_src/s-sertio.adb.tmpl",
+            "common_src/s-sertio.ads",
             "bb-runtimes/arm/stm32/start-common.S",
             "bb-runtimes/arm/stm32/start-ram.S",
             "bb-runtimes/arm/stm32/start-rom.S",

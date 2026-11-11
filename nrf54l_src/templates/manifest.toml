@@ -24,3 +24,16 @@ excluded_profiles = ["light-tasking", "embedded"]
 src = "ravenscar_build.gpr.in"
 dst = "ravenscar_build.gpr"
 excluded_profiles = ["light"]
+
+[[template]]
+src = "../../common_src/s-textio.adb.in"
+dst = "gnat/s-textio.adb"
+values = { "RUNTIME_CONFIG_PACKAGE" = "NRF54_App_Runtime_Config" }
+
+[[template]]
+src = "../../common_src/s-textio.ads"
+dst = "gnat/s-textio.ads"
+
+[[template]]
+src = "../../common_src/a-textio.adb"
+dst = "gnat/a-textio.adb"
