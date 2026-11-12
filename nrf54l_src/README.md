@@ -236,6 +236,85 @@ The following variables configure the interrupt stack sizes:
   </tr>
 </table>
 
+The following variables configure the communication method used for package
+`Ada.Text_IO`:
+
+<table>
+  <thead>
+    <th>Variable</th>
+    <th>Values</th>
+    <th>Default</th>
+    <th>Description</th>
+  </thead>
+  <tr>
+    <td><tt>Text_IO</tt></td>
+    <td>
+      <tt>"None"</tt><br/>
+      <tt>"Semihosting"</tt><br/>
+      <tt>"Segger_RTT"</tt><br/>
+    </td>
+    <td><tt>"Semihosting"</tt></td>
+    <td>
+      Selects the communication method used for package <tt>Ada.Text_IO</tt>.
+      <ul>
+        <li><tt>"None"</tt> silently discards all data sent via <tt>Ada.Text_IO</tt></li>
+        <li><tt>"Semihosting"</tt> uses Arm semihosting to send and receive data</li>
+        <li><tt>"Segger_RTT"</tt> uses Segger Real Time Transfer (RTT) to send and receive data</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
+>[!NOTE]
+> Segger RTT uses circular buffers in RAM to send Text_IO data.
+> A debug probe on the host machine (e.g. a J-Link) uses background memory
+> accesses (via JTAG, SWD, or similar) to asynchronously read and write to those
+> RAM buffers (i.e., without halting the CPU). This allows RTT to be much faster
+> than semihosting, but requires special support from the debug probes and
+> debug software tools to communicate.
+
+When `Text_IO` is set to `"Segger_RTT"` then the following configuration
+variables can be used to fine-tune it:
+
+<table>
+  <thead>
+    <th>Variable</th>
+    <th>Values</th>
+    <th>Default</th>
+    <th>Description</th>
+  </thead>
+  <tr>
+    <td><tt>Text_IO_RTT_Out_Buffer_Length</tt></td>
+    <td><tt>>= 2</td>
+    <td><tt>1024</tt></td>
+    <td>Sets the size (in characters) of the output buffer for Segger RTT Text_IO.</td>
+  </tr>
+  <tr>
+    <td><tt>Text_IO_RTT_In_Buffer_Length</tt></td>
+    <td><tt>>= 2</td>
+    <td><tt>32</tt></td>
+    <td>Sets the size (in characters) of the input buffer for Segger RTT Text_IO.</td>
+  </tr>
+  <tr>
+    <td><tt>Text_IO_RTT_Mode</tt></td>
+    <td>
+      <tt>"No_Block_Trim"</tt><br/>
+      <tt>"Block_When_Full"</tt><br/>
+    </td>
+    <td><tt>"No_Block_Trim"</tt></td>
+    <td>
+      Selects the RTT behaviour when the output buffer is full.
+      <ul>
+        <li><tt>"No_Block_Trim"</tt> RTT output is non-blocking.
+        Messages are truncated when the buffer becomes full.</li>
+        <li><tt>"Block_When_Full"</tt> causes <tt>Ada.Text_IO</tt> to block
+        when the output buffer becomes full, until the debug probe consumes
+        data from it.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
+
 ### GPR Scenario Variables
 
 The runtime project files expose `*_BUILD` and and `*_LIBRARY_TYPE` GPR
